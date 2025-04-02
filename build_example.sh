@@ -37,11 +37,17 @@ echo LIBS=$LIBS
 echo OUTPUT_DIR=$OUTPUT_DIR
 echo USER_CMD=$USER_CMD
 
-if [ "$USER_CMD" = "build" ]; then
+if [ x"$USER_CMD" = x"build" ]; then
     USER_CMD=all
 fi
 
 mkdir -p $OUTPUT_DIR
 make EXAMPLE_NAME=$EXAMPLE_NAME EXAMPLE_VER=$EXAMPLE_VER LIBS_DIR=$LIBS_DIR LIBS="$LIBS" OUTPUT_DIR=$OUTPUT_DIR HEADER_DIR="$HEADER_DIR" $USER_CMD
 
+if [ x$USER_CMD = "xclean" ];then
+	echo "*************************************************************************"
+	echo "************************CLEAN SUCCESS************************************"
+	echo "*************************************************************************"
+	exit 0
+fi
 
