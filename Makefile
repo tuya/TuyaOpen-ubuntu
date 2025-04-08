@@ -26,7 +26,7 @@ LOCAL_CFLAGS += $(foreach base_dir, $(HEADER_DIR), $(addprefix -I , $(base_dir))
 # -fsanitize=address -fno-omit-frame-pointer
 LOCAL_CFLAGS += -g
 
-LOCAL_OUTPUT_DIR = $(OUTPUT_DIR)/$(EXAMPLE_NAME)_$(EXAMPLE_VER)
+LOCAL_OUTPUT_DIR = $(OUTPUT_DIR)
 LOCAL_OUTPUT_DIR_OBJS = $(LOCAL_OUTPUT_DIR)/.objs
 
 LOCAL_OBJS = $(addsuffix .o, $(LOCAL_SRC_FILES))
@@ -49,6 +49,7 @@ all: app_excute
 app_excute: $(LOCAL_OBJS_OUT)
 	@mkdir -p $(LOCAL_OUTPUT_DIR_OBJS)
 	$(CC) $(LOCAL_OBJS_OUT) $(LINKFLAGS) -o $(LOCAL_OUTPUT_DIR)/$(EXAMPLE_NAME)_$(EXAMPLE_VER)
+	@cp $(LOCAL_OUTPUT_DIR)/$(EXAMPLE_NAME)_$(EXAMPLE_VER) $(LOCAL_OUTPUT_DIR)/$(EXAMPLE_NAME)_QIO_$(EXAMPLE_VER).bin
 	@echo "Build APP Finish"
 
 .PHONY: all clean SHOWARGS app_excute pack
