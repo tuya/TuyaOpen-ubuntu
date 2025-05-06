@@ -28,6 +28,8 @@ static OPERATE_RET __tkl_wired_get_status_by_name(const char *if_name, TKL_WIRED
     int sockfd;
     struct ifreq ifr;
 
+    memset((void *)&ifr, 0, sizeof(ifr));
+
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     if (sockfd < 0) {
         perror("socket");
