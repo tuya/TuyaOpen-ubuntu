@@ -33,6 +33,26 @@ endif()
 project(TuyaOpen)
 
 
+# Set a default build type if none was specified, and print it
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build: Debug, Release, RelWithDebInfo, MinSizeRel" FORCE)
+endif()
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+
+# Set global compiler flags
+add_compile_options(-fdiagnostics-color=always)
+
+# Add an option to enable AddressSanitizer (ASan)
+option(ENABLE_ASAN "Enable AddressSanitizer" OFF)
+
+if(ENABLE_ASAN)
+    if(CMAKE_BUILD_TYPE AND NOT CMAKE_BUILD_TYPE MATCHES "Debug")
+        message(WARNING "ASan is best used with Debug build type. Current build type: ${CMAKE_BUILD_TYPE}")
+    endif()
+    message(STATUS "AddressSanitizer enabled")
+    add_compile_options(-fsanitize=address)
+endif()
+
 if(CONFIG_ENABLE_WIFI STREQUAL "y")
     set(CONFIG_ENABLE_WIFI ON)
 else()
@@ -115,10 +135,23 @@ if(OPEN_HEADER_DIR)
     endforeach()
 endif()
 
-add_definitions(-g)
-add_compile_options(-fdiagnostics-color=always) 
-
 add_executable(${CONFIG_PROJECT_NAME} ${SOURCES})
+
+# Set target-specific compile options based on build type
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    target_compile_options(${CONFIG_PROJECT_NAME} PRIVATE -g -O0)
+elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
+    target_compile_options(${CONFIG_PROJECT_NAME} PRIVATE -O3 -DNDEBUG)
+elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+    target_compile_options(${CONFIG_PROJECT_NAME} PRIVATE -O2 -g -DNDEBUG)
+elseif(CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
+    target_compile_options(${CONFIG_PROJECT_NAME} PRIVATE -Os -DNDEBUG)
+endif()
+
+if(ENABLE_ASAN)
+    target_compile_options(${CONFIG_PROJECT_NAME} PRIVATE -fsanitize=address)
+    target_link_libraries(${CONFIG_PROJECT_NAME} PRIVATE -fsanitize=address)
+endif()
 
 target_link_libraries(${CONFIG_PROJECT_NAME}
     -L${OPEN_LIBS_DIR}
