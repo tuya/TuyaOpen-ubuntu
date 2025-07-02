@@ -1,2 +1,3 @@
 CatalogKconfig
 *.build/
+build
