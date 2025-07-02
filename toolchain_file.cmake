@@ -3,27 +3,25 @@
 # @brief 
 #/
 
-set(CMAKE_SYSTEM_NAME Linux)
-set(CMAKE_SYSTEM_PROCESSOR Linux)
-
-set(TOOLCHAIN_DIR "/usr")
-set(TOOLCHAIN_INCLUDE
-    ${TOOLCHAIN_DIR}/include
-    )
-set(TOOLCHAIN_LIB
-    ${TOOLCHAIN_DIR}/lib/gcc
-    )
-
-set(CMAKE_C_COMPILER "${TOOLCHAIN_DIR}/bin/gcc")
-set(CMAKE_CXX_COMPILER "${TOOLCHAIN_DIR}/bin/g++")
-
-set(CMAKE_FIND_ROOT_PATH ${TOOLCHAIN_DIR})
-set(CMAKE_INCLUDE_PATH
-    ${TOOLCHAIN_INCLUDE}
-    )
-set(CMAKE_LIBRARY_PATH
-    ${TOOLCHAIN_LIB}
-    )
+if(DEFINED CONFIG_COMPILE_PREX AND NOT "${CONFIG_COMPILE_PREX}" STREQUAL "")
+    message(STATUS "Using cross compile prefix: ${CONFIG_COMPILE_PREX}")
+    
+    set(CMAKE_C_COMPILER ${CONFIG_COMPILE_PREX}gcc)
+    set(CMAKE_CXX_COMPILER ${CONFIG_COMPILE_PREX}g++)
+    set(CMAKE_ASM_COMPILER ${CONFIG_COMPILE_PREX}gcc)
+    set(CMAKE_AR ${CONFIG_COMPILE_PREX}ar)
+    set(CMAKE_RANLIB ${CONFIG_COMPILE_PREX}ranlib)
+    set(CMAKE_STRIP ${CONFIG_COMPILE_PREX}strip)
+    
+    set(CMAKE_SYSTEM_NAME Linux)
+    
+    set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+    set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+    set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+    set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
+else()
+    message(STATUS "Using native compilation (CONFIG_COMPILE_PREX not set or empty)")
+endif()
 
 # -fsanitize=address -fno-omit-frame-pointer
 set(CMAKE_C_FLAGS " -g")
