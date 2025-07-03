@@ -78,6 +78,13 @@ set(INIT_SRC "tuyaos_adapter/include/init/src/tkl_init_common.c")
 if(CONFIG_ENABLE_WIFI)
     file(GLOB_RECURSE WIFI_SRC "tuyaos_adapter/src/tkl_wifi/*.c")
     list(APPEND INIT_SRC "tuyaos_adapter/include/init/src/tkl_init_wifi.c")
+    set(WPA_INC)
+    list(APPEND WPA_INC
+        "${CMAKE_SOURCE_DIR}/tuyaos_adapter/src/tkl_wifi/iwlib"
+        "${CMAKE_SOURCE_DIR}/tuyaos_adapter/src/tkl_wifi/wpa_s"
+        "${CMAKE_SOURCE_DIR}/tuyaos_adapter/src/tkl_wifi/wpa_cli"
+        "${CMAKE_SOURCE_DIR}/tuyaos_adapter/src/tkl_wifi/log"
+    )
 endif()
 
 if(CONFIG_ENABLE_BLUETOOTH)
@@ -125,6 +132,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/tuyaos_adapter/include/watchdog
     ${CMAKE_SOURCE_DIR}/tuyaos_adapter/include/wifi
     ${CMAKE_SOURCE_DIR}/tuyaos_adapter/include/wired
+    ${WPA_INC}
 )
 
 if(OPEN_HEADER_DIR)
