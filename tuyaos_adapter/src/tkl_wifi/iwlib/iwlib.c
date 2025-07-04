@@ -248,8 +248,8 @@ void iw_enum_devices(int skfd,
         /* Success : use data from /proc/net/wireless */
 
         /* Eat 2 lines of header */
-        fgets(buff, sizeof(buff), fh);
-        fgets(buff, sizeof(buff), fh);
+        char * __attribute__((unused)) ret = fgets(buff, sizeof(buff), fh);
+        ret = fgets(buff, sizeof(buff), fh);
 
         /* Read each device line */
         while(fgets(buff, sizeof(buff), fh))
@@ -330,7 +330,7 @@ int iw_get_kernel_we_version(void)
     }
 
     /* Read the first line of buffer */
-    fgets(buff, sizeof(buff), fh);
+    char * __attribute__((unused)) ret = fgets(buff, sizeof(buff), fh);
 
     if(strstr(buff, "| WE") == NULL)
     {
@@ -346,7 +346,7 @@ int iw_get_kernel_we_version(void)
     }
 
     /* Read the second line of buffer */
-    fgets(buff, sizeof(buff), fh);
+    ret = fgets(buff, sizeof(buff), fh);
 
     /* Get to the last separator, to get the version */
     p = strrchr(buff, '|');
@@ -1135,7 +1135,7 @@ void iw_print_freq(char * buffer,
             int     freq_flags)
 {
     char    sep = ((freq_flags & IW_FREQ_FIXED) ? '=' : ':');
-    char    vbuf[16];
+    char    vbuf[32];  /* Increased buffer size to prevent truncation */
 
     /* Print the frequency/channel value */
     iw_print_freq_value(vbuf, sizeof(vbuf), freq);
