@@ -557,7 +557,18 @@ static int wifi_send_command(int cmd, void *value, int val_len, void *res, int r
 
     wifi_conn = wpa_ctrl_open(WIFI_WPA_CTRL_PATH);
     if (wifi_conn == NULL) {
-        printf("wifi open error\n");
+        printf("wifi open error: Failed to connect to wpa_supplicant at %s\n", WIFI_WPA_CTRL_PATH);
+        printf("Please check the following:\n");
+        printf("1. Ensure wpa_supplicant is running. You can start it with:\n");
+        printf("   sudo systemctl start wpa_supplicant\n");
+        printf("2. Verify the control interface exists at %s\n", WIFI_WPA_CTRL_PATH);
+        printf("   If not, check your wpa_supplicant.conf for the ctrl_interface setting.\n");
+        printf("3. Make sure your user is in the 'netdev' group (or the group owning the control interface):\n");
+        printf("   sudo usermod -aG netdev $USER\n");
+        printf("   Then re-login or run with sudo if needed.\n");
+        printf("4. Check permissions:\n");
+        printf("   sudo ls -l %s\n", WIFI_WPA_CTRL_PATH);
+        printf("   The socket should be accessible by your user or group.\n");
         return -1;
     }
 
