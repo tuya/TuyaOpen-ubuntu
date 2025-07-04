@@ -345,11 +345,11 @@ static void process_kill(char *proc)
     char cmd_buf[128] = {0};
 
     snprintf(cmd_buf,sizeof(cmd_buf),"killall -9 '%s' ",proc);
-    system(cmd_buf);
+    int __attribute__((unused)) ret = system(cmd_buf);
 
     // /* 获取到指定process的PID */
     // snprintf(cmd_buf, sizeof(cmd_buf),"ps | grep '%s' | grep -v grep | awk '{print $2}' | xargs kill",proc);
-    // system(cmd_buf);
+    // ret = system(cmd_buf);
 }
 
 static int process_alive(char *process)
@@ -539,7 +539,7 @@ static void start_wpa(void)
     }
 
     snprintf(cmd_buf,sizeof(cmd_buf),WPA_SUPPLICANT" -i %s -Dnl80211 -c %s -B",ifname,WIFI_STATION_CONF);
-    system(cmd_buf);
+    int __attribute__((unused)) ret = system(cmd_buf);
 }
 
 static int get_passwd_and_ssid_from_wpa_file(char *ssid, char *passwd)
@@ -591,9 +591,10 @@ static void start_udhcpc(void)
     char *ifname = WLAN_DEV;
     char cmd_buf[128] = {0x0};
 
-    system("killall "UDHCPC"");
+    int __attribute__((unused)) ret = system("killall "UDHCPC"");
+    memset(cmd_buf, 0, sizeof(cmd_buf));
     snprintf(cmd_buf,sizeof(cmd_buf),""UDHCPC" -i %s -R &",ifname);
-    system(cmd_buf);
+    ret = system(cmd_buf);
 }
 
 int wifi_get_curr_rssi(char *ifname, char *rssi)
@@ -923,14 +924,14 @@ int wifi_ap_start(char *ifname, WF_AP_CFG_IF_S *cfg)
         return -1;
     }
     snprintf(cmd,sizeof(cmd),"hostapd %s &", WIFI_HOSTAPD_CONF);
-    system(cmd);
+    int __attribute__((unused)) sys_ret = system(cmd);
     ret = wifi_set_ip(ifname, cfg->ip.ip);
     if (ret < 0) {
         TKL_LOGE("WIFI set ip failed");
         return -1;
     }
-    system(CREATE_UDHCPD_DIR);
-    system(CREATE_UDHCPD_CFG_FILE);
+    sys_ret = system(CREATE_UDHCPD_DIR);
+    sys_ret = system(CREATE_UDHCPD_CFG_FILE);
     if (ip_prepare((char*)cfg->ip.ip, ipaddr_pre)) {
 	    TKL_LOGE("ip_pepare fail\n");
         return -1;
@@ -944,12 +945,12 @@ int wifi_ap_start(char *ifname, WF_AP_CFG_IF_S *cfg)
     ret = udhcpd_conf_prepare(udhcpd_ip_t);
     if(ret < 0) {
         TKL_LOGE("udhcpd_conf_prepare\n");
-        system("killall -9 hostapd");
+        sys_ret = system("killall -9 hostapd");
         return -1;
     }
     memset(cmd,0,sizeof(cmd));
     snprintf(cmd, sizeof(cmd), "udhcpd -f %s &", WIFI_DHCPD_CONF);
-    system(cmd);
+    sys_ret = system(cmd);
 
     return 0;
 }

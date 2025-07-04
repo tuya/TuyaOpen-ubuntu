@@ -716,7 +716,8 @@ int wifi_join_network(struct wifi_network *net)
  */
 void dhcp_reset(void)
 {
-    system("killall dhcpcd\n");
+    int ret = system("killall dhcpcd\n");
+    (void)ret;  // Explicitly ignore return value
 }
 
 int wifi_save_network(void)
@@ -1224,11 +1225,12 @@ int wifi_reconnect_network()
  */
 void wifi_goto_lowermode(int state)
 {
+    int __attribute__((unused)) ret;
     if (state) {
-        system("iptables -A OUTPUT  -j DROP -o wlan0");
-        system("iptables -A INPUT -j DROP -i wlan0");
+        ret = system("iptables -A OUTPUT  -j DROP -o wlan0");
+        ret = system("iptables -A INPUT -j DROP -i wlan0");
     } else {
-        system("iptables -F");
+        ret = system("iptables -F");
     }
 }
 /**
