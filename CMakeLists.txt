@@ -156,7 +156,6 @@ endif()
 target_link_libraries(${CONFIG_PROJECT_NAME}
     -L${OPEN_LIBS_DIR}
     pthread
-    m
 )
 
 if(NOT DEFINED CONFIG_COMPILE_PREX OR "${CONFIG_COMPILE_PREX}" STREQUAL "")
@@ -171,3 +170,6 @@ if(PLATFORM_NEED_LIBS)
         ${LIBS_LIST}
     )
 endif()
+
+# Link math library after all other libraries to resolve dependencies
+target_link_libraries(${CONFIG_PROJECT_NAME} m)
