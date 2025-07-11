@@ -124,19 +124,86 @@ typedef size_t SIZE_T;
 
 #endif
 
-#define OFFSOF(s,m) ((SIZE_T)(&(((s*)0)->m)))
+#define OFFSOF(s,m) ((size_t)(&(((s*)0)->m)))
 #define CNTSOF(a)   (sizeof(a)/sizeof(a[0]))
 #define CNTR_OF(ptr, type, member) \
         ({(type *)( (char *)ptr - OFFSOF(type,member) );}) // continer of
 
+/* tuyaos definition of socket domain */
+typedef int SOCKET_DOMAIN;
+#define TY_PF_INET  TY_AF_INET
+#define TY_PF_INET6 TY_AF_INET6
+
+/* tuyaos definition of IP addr type */
+typedef uint8_t IP_ADDR_TYPE;
+#define TY_AF_INET          2
+#define TY_AF_INET6         10
+
+/* tuyaos definition of dns mode */
+typedef enum {
+    DNS_IPV4 = TY_AF_INET,
+    DNS_IPV6 = TY_AF_INET6,
+} DNS_MODE_E;
+
+typedef uint8_t NW_IP_TYPE;
+
+#define NW_IPV4         0
+#define NW_IPV6         1
+#define NW_IPV6_LL      2
+
+#if defined(ENABLE_IPv6) && (ENABLE_IPv6 == 1)
+#define IS_NW_IPV4_ADDR(ip) (TY_AF_INET == (ip)->type)
+#define IS_NW_IPV6_ADDR(ip) (TY_AF_INET6 == (ip)->type)
+
+typedef struct {
+    char ip[16];    /* ip addr:  xxx.xxx.xxx.xxx  */
+    char mask[16];  /* net mask: xxx.xxx.xxx.xxx  */
+    char gw[16];    /* gateway:  xxx.xxx.xxx.xxx  */
+    char islinklocal;
+} NW_IP4_S;
+
+typedef struct {
+    char ip[40];    /* ip6 addr:  xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx */
+    char islinklocal;
+} NW_IP6_S;
+
+typedef struct {
+    #define nwipstr        addr.ip4.ip
+    #define nwmaskstr      addr.ip4.mask
+    #define nwgwstr        addr.ip4.gw
+    union {
+        NW_IP4_S ip4;
+        NW_IP6_S ip6;
+    } addr;
+    IP_ADDR_TYPE type;
+} NW_IP_S;
+
+/* tuyaos definition of IP addr */
+typedef struct {
+#define ipaddr4  u_addr.ip4
+#define ipaddr6  u_addr.ip6
+    union {
+        uint32_t  ip6[4];
+        uint32_t  ip4;
+    } u_addr;
+    IP_ADDR_TYPE type;
+    BOOL_T dhcpen;  /* enable dhcp or not */
+} TUYA_IP_ADDR_T;
+
+#define IPADDR4_FMT           "%d.%d.%d.%d"
+#define IPADDR4_PR(__addr)    (uint8_t)((__addr)->ipaddr4 >> 24), (uint8_t)((__addr)->ipaddr4 >> 16), (uint8_t)((__addr)->ipaddr4 >> 8), (__addr)->ipaddr4 & 0xFF
+#else
 typedef struct
 {
     char ip[16];    /* ip addr:  xxx.xxx.xxx.xxx  */
     char mask[16];  /* net mask: xxx.xxx.xxx.xxx  */
     char gw[16];    /* gateway:  xxx.xxx.xxx.xxx  */
-    char dns[16];   /* dns server */
-    BOOL_T dhcpen;  /* is dhcp enable */
-}NW_IP_S;
+    char dns[16];    /* dns server:  xxx.xxx.xxx.xxx  */
+    BOOL_T dhcpen;  /* enable dhcp or not */
+} NW_IP_S;
+/* tuyaos definition of IP addr */
+typedef uint32_t TUYA_IP_ADDR_T;
+#endif
 
 #define MAC_ADDR_LEN 6
 typedef struct {
