@@ -16,7 +16,9 @@
 #include "tkl_flash.h"
 #include "tkl_fs.h"
 
+#ifndef FLASH_FILE_PATH
 #define FLASH_FILE_PATH "./tuyadb"
+#endif
 #define FLASH_FILE_NAME ""FLASH_FILE_PATH"/tuyadb"
 #define FLASH_FILE_SIZE (256 * 1024)
 #define FLASH_BASE_ADDR 0X00 //

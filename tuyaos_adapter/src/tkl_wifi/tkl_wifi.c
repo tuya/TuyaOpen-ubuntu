@@ -282,13 +282,6 @@ OPERATE_RET tkl_wifi_get_mac(const WF_IF_E wf, NW_MAC_S *mac)
     TKL_LOGD("GET MAC success, MAC:%02x:%02x:%02x:%02x:%02x:%02x",
         mac->mac[0],mac->mac[1],mac->mac[2],mac->mac[3],mac->mac[4],mac->mac[5]);
 
-    //! FIXME:
-    if (wf == WF_AP) {
-        mac->mac[4] = 
-        mac->mac[4] = 0x4A;
-        mac->mac[5] = 0x12;
-    }
-
     return OPRT_OK;
 }
 
