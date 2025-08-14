@@ -6,9 +6,7 @@
 
 #define MAX_REV_BUFFER      (512)
 
-#ifndef WIFI_DB_PATH
-#define WIFI_DB_PATH    "./tuyadb"
-#endif
+#define WIFI_DB_PATH    FLASH_FILE_PATH
 
 #ifndef WIFI_AP_DEFAULT_IP
 #define WIFI_AP_DEFAULT_IP  "192.168.31.1"

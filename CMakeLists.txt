@@ -89,6 +89,11 @@ endif()
 
 if(CONFIG_ENABLE_BLUETOOTH)
     file(GLOB_RECURSE BT_SRC "tuyaos_adapter/src/tkl_bt/*.c")
+    set(BLUETOOTH_INC)
+    list(APPEND BLUETOOTH_INC
+    "${CMAKE_SOURCE_DIR}/tuyaos_adapter/include/bluetooth"
+    "${CMAKE_SOURCE_DIR}/tuyaos_adapter/src/tkl_bt/include"
+    )
 endif()
 
 if(CONFIG_ENABLE_WIRED)
@@ -133,6 +138,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/tuyaos_adapter/include/wifi
     ${CMAKE_SOURCE_DIR}/tuyaos_adapter/include/wired
     ${WPA_INC}
+    ${BLUETOOTH_INC}
 )
 
 if(OPEN_HEADER_DIR)
