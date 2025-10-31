@@ -131,6 +131,30 @@ OPERATE_RET tkl_thread_set_priority(TKL_THREAD_HANDLE thread, int priority);
 */
 OPERATE_RET tkl_thread_diagnose(TKL_THREAD_HANDLE thread);
 
+/**
+ * @brief Create thread in PSRAM (stub for Ubuntu - same as regular thread create)
+ *
+ * @param[out] thread: thread handle
+ * @param[in] name: thread name
+ * @param[in] stack_size: stack size of thread
+ * @param[in] priority: priority of thread
+ * @param[in] func: the main thread process function
+ * @param[in] arg: the args of the func, can be null
+ *
+ * @note On Ubuntu, PSRAM doesn't exist, so this is mapped to regular thread create
+ *
+ * @return OPRT_OK on success. Others on error
+ */
+static inline OPERATE_RET tkl_thread_create_in_psram(TKL_THREAD_HANDLE* thread,
+                                                     const char* name,
+                                                     uint32_t stack_size,
+                                                     uint32_t priority,
+                                                     const THREAD_FUNC_T func,
+                                                     void* const arg)
+{
+    return tkl_thread_create(thread, name, stack_size, priority, func, arg);
+}
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
