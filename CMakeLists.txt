@@ -185,5 +185,13 @@ if(PLATFORM_NEED_LIBS)
     )
 endif()
 
+# Link ALSA library AFTER static libraries to resolve dependencies
+if(CONFIG_ENABLE_AUDIO_ALSA STREQUAL "y")
+    target_link_libraries(${CONFIG_PROJECT_NAME}
+        asound
+    )
+    message(STATUS "Linking ALSA library to final executable")
+endif()
+
 # Link math library after all other libraries to resolve dependencies
 target_link_libraries(${CONFIG_PROJECT_NAME} m)
