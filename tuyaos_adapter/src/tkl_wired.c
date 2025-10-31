@@ -23,6 +23,22 @@
 TKL_WIRED_STATUS_CHANGE_CB event_cb;
 pthread_t  wired_event_thread = 0;
 
+/**
+ * @brief  check if an interface is a loopback interface
+ *
+ * @param[in]   if_name: the interface name
+ *
+ * @return 1 if loopback interface, 0 otherwise
+ */
+static int is_loopback_interface(const char *if_name)
+{
+    if (if_name == NULL) {
+        return 0;
+    }
+
+    return (strcmp(if_name, "lo") == 0 || strncmp(if_name, "loopback", 8) == 0);
+}
+
 static OPERATE_RET __tkl_wired_get_status_by_name(const char *if_name, TKL_WIRED_STAT_E *status)
 {
     int sockfd;
@@ -86,12 +102,17 @@ TUYA_WEAK_ATTRIBUTE OPERATE_RET tkl_wired_get_status(TKL_WIRED_STAT_E *status)
         return OPRT_NOT_FOUND;
     }
 
-    for (i=0; name_list[i].if_index != 0; ++i) {
-        if (strcmp(name_list[i].if_name, "lo") == 0)
+    for (i = 0; name_list[i].if_index != 0; ++i) {
+        if (is_loopback_interface(name_list[i].if_name))
             continue;
 
-        if (!__tkl_wired_get_status_by_name(name_list[i].if_name, status))
-            break;
+        TKL_WIRED_STAT_E if_status = TKL_WIRED_LINK_DOWN;
+        if (!__tkl_wired_get_status_by_name(name_list[i].if_name, &if_status)) {
+            *status = if_status;
+            if (if_status == TKL_WIRED_LINK_UP) {
+                break;
+            }
+        }
     }
 
     if_freenameindex(name_list);
@@ -108,7 +129,7 @@ TUYA_WEAK_ATTRIBUTE OPERATE_RET tkl_wired_get_status(TKL_WIRED_STAT_E *status)
 TUYA_WEAK_ATTRIBUTE OPERATE_RET tkl_wired_set_status_cb(TKL_WIRED_STATUS_CHANGE_CB cb)
 {
     if (cb) {
-        TKL_WIRED_STAT_E status;
+        TKL_WIRED_STAT_E status = TKL_WIRED_LINK_DOWN;
         struct if_nameindex *name_list;
         int i;
 
@@ -117,12 +138,17 @@ TUYA_WEAK_ATTRIBUTE OPERATE_RET tkl_wired_set_status_cb(TKL_WIRED_STATUS_CHANGE_
             return OPRT_NOT_FOUND;
         }
 
-        for (i=0; name_list[i].if_index != 0; ++i) {
-            if (strcmp(name_list[i].if_name, "lo") == 0)
+        for (i = 0; name_list[i].if_index != 0; ++i) {
+            if (is_loopback_interface(name_list[i].if_name))
                 continue;
 
-            if (!__tkl_wired_get_status_by_name(name_list[i].if_name, &status))
-                break;
+            TKL_WIRED_STAT_E if_status = TKL_WIRED_LINK_DOWN;
+            if (!__tkl_wired_get_status_by_name(name_list[i].if_name, &if_status)) {
+                status = if_status;
+                if (if_status == TKL_WIRED_LINK_UP) {
+                    break;
+                }
+            }
         }
 
         if_freenameindex(name_list);
@@ -191,7 +217,7 @@ OPERATE_RET tkl_wired_set_ip(NW_IP_S *ip)
  */
 TUYA_WEAK_ATTRIBUTE OPERATE_RET tkl_wired_get_ip(NW_IP_S *ip)
 {
-    OPERATE_RET rt = OPRT_OK;
+    OPERATE_RET rt = OPRT_NOT_FOUND;
     struct if_nameindex *name_list;
     int i;
 
@@ -200,16 +226,17 @@ TUYA_WEAK_ATTRIBUTE OPERATE_RET tkl_wired_get_ip(NW_IP_S *ip)
         return OPRT_NOT_FOUND;
     }
 
-    for (i=0; name_list[i].if_index != 0; ++i) {
-        if (strcmp(name_list[i].if_name, "lo") == 0)
+    for (i = 0; name_list[i].if_index != 0; ++i) {
+        if (is_loopback_interface(name_list[i].if_name))
             continue;
 
-        if (!__tkl_wired_get_ip_by_name(name_list[i].if_name, ip))
-            break;
-    }
-
-    if (name_list[i].if_name == NULL) {
-        rt = OPRT_NOT_FOUND;
+        TKL_WIRED_STAT_E if_status = TKL_WIRED_LINK_DOWN;
+        if (!__tkl_wired_get_status_by_name(name_list[i].if_name, &if_status) && if_status == TKL_WIRED_LINK_UP) {
+            if (!__tkl_wired_get_ip_by_name(name_list[i].if_name, ip)) {
+                rt = OPRT_OK;
+                break;
+            }
+        }
     }
 
     if_freenameindex(name_list);
