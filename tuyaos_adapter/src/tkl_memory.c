@@ -15,7 +15,7 @@
 #include "tkl_memory.h"
 #include "tuya_mem_heap.h"
 
-#define MAX_HEAP_SIZE (512*1024)
+#define MAX_HEAP_SIZE (512 * 1024 * 1024)
 
 static pthread_mutex_t s_heap_mutex = PTHREAD_MUTEX_INITIALIZER;
 static HEAP_HANDLE s_heap_handle = NULL;
