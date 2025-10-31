@@ -67,6 +67,44 @@ void *tkl_system_realloc(void* ptr, size_t size);
 */
 int tkl_system_get_free_heap_size(void);
 
+/**
+ * @brief Alloc memory from PSRAM (stub for Ubuntu - uses regular malloc)
+ *
+ * @param[in] size: memory size
+ *
+ * @note On Ubuntu, PSRAM doesn't exist, so this is mapped to regular malloc
+ *
+ * @return the memory address malloced
+ */
+static inline void *tkl_system_psram_malloc(SIZE_T size)
+{
+    return tkl_system_malloc(size);
+}
+
+/**
+ * @brief Free memory from PSRAM (stub for Ubuntu - uses regular free)
+ *
+ * @param[in] ptr: memory point
+ *
+ * @note On Ubuntu, PSRAM doesn't exist, so this is mapped to regular free
+ *
+ * @return void
+ */
+static inline void tkl_system_psram_free(void* ptr)
+{
+    tkl_system_free(ptr);
+}
+
+/**
+ * @brief Get free PSRAM heap size (stub for Ubuntu)
+ *
+ * @return heap size
+ */
+static inline int tkl_system_get_psram_free_heap_size(void)
+{
+    return tkl_system_get_free_heap_size();
+}
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
