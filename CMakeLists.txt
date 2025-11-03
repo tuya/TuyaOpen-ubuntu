@@ -184,14 +184,9 @@ if(PLATFORM_NEED_LIBS)
         ${LIBS_LIST}
     )
 endif()
-
-# Link ALSA library AFTER static libraries to resolve dependencies
-if(CONFIG_ENABLE_AUDIO_ALSA STREQUAL "y")
-    target_link_libraries(${CONFIG_PROJECT_NAME}
-        asound
-    )
-    message(STATUS "Linking ALSA library to final executable")
-endif()
+    
+# Include dependency detection modules
+include(${CMAKE_CURRENT_SOURCE_DIR}/deps/alsa.cmake)
 
 # Link math library after all other libraries to resolve dependencies
 target_link_libraries(${CONFIG_PROJECT_NAME} m)
