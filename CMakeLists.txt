@@ -12,13 +12,27 @@ endif()
 
 if(DEFINED CONFIG_COMPILE_PREX AND NOT "${CONFIG_COMPILE_PREX}" STREQUAL "")
     message(STATUS "Using cross compile prefix: ${CONFIG_COMPILE_PREX}")
+
+    if("${CONFIG_COMPILE_PREX}" MATCHES "^aarch64-none-linux-gnu-")
+        set(TOOLCHAIN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../tools/aarch64-none-linux-gnu-10.3-2021.07")
+        set(COMPILE_PATH "${TOOLCHAIN_DIR}/bin/${CONFIG_COMPILE_PREX}")
+    else()
+        set(COMPILE_PATH "${CONFIG_COMPILE_PREX}")
+    endif()
     
-    set(CMAKE_C_COMPILER ${CONFIG_COMPILE_PREX}gcc)
-    set(CMAKE_CXX_COMPILER ${CONFIG_COMPILE_PREX}g++)
-    set(CMAKE_ASM_COMPILER ${CONFIG_COMPILE_PREX}gcc)
-    set(CMAKE_AR ${CONFIG_COMPILE_PREX}ar)
-    set(CMAKE_RANLIB ${CONFIG_COMPILE_PREX}ranlib)
-    set(CMAKE_STRIP ${CONFIG_COMPILE_PREX}strip)
+    # On Windows, add .exe suffix to executables
+    if(WIN32)
+        set(EXE_SUFFIX ".exe")
+    else()
+        set(EXE_SUFFIX "")
+    endif()
+    
+    set(CMAKE_C_COMPILER ${COMPILE_PATH}gcc${EXE_SUFFIX})
+    set(CMAKE_CXX_COMPILER ${COMPILE_PATH}g++${EXE_SUFFIX})
+    set(CMAKE_ASM_COMPILER ${COMPILE_PATH}gcc${EXE_SUFFIX})
+    set(CMAKE_AR ${COMPILE_PATH}ar${EXE_SUFFIX})
+    set(CMAKE_RANLIB ${COMPILE_PATH}ranlib${EXE_SUFFIX})
+    set(CMAKE_STRIP ${COMPILE_PATH}strip${EXE_SUFFIX})
     
     set(CMAKE_SYSTEM_NAME Linux)
     
