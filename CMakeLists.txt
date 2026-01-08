@@ -202,5 +202,21 @@ endif()
 # Include dependency detection modules
 include(${CMAKE_CURRENT_SOURCE_DIR}/deps/alsa.cmake)
 
+if(PLATFORM_CHIP STREQUAL "Raspberry_Pi")
+    # Check if the audio subsystem library file exists
+    set(AUDIO_SUBSYS_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tuyaos_adapter/libs/audio/${PLATFORM_CHIP})
+    set(AUDIO_SUBSYS_LIB_FILE ${AUDIO_SUBSYS_LIB_DIR}/libaudio_subsys.a)
+
+    if(EXISTS ${AUDIO_SUBSYS_LIB_FILE})
+        message(STATUS "Found audio subsys library: ${AUDIO_SUBSYS_LIB_FILE}")
+        target_link_libraries(${CONFIG_PROJECT_NAME}
+            -L${AUDIO_SUBSYS_LIB_DIR}
+            -laudio_subsys
+        )
+    else()
+        message(WARNING "Audio subsys library not found: ${AUDIO_SUBSYS_LIB_FILE}")
+    endif()
+endif()
+
 # Link math library after all other libraries to resolve dependencies
-target_link_libraries(${CONFIG_PROJECT_NAME} m)
+target_link_libraries(${CONFIG_PROJECT_NAME} m stdc++)
