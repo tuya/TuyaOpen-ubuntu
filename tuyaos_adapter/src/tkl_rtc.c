@@ -8,8 +8,8 @@
 *
 */
 #include "tkl_rtc.h"
-#include   <time.h> 
-
+#include <time.h> 
+#include <stdio.h>
 /**
  * @brief rtc init
  * 

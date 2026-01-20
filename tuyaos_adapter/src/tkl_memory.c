@@ -139,3 +139,67 @@ TUYA_WEAK_ATTRIBUTE void *tkl_system_memcpy(void* src, const void* dst, const SI
 {
     return memcpy(src, dst, n);
 }
+
+/**
+* @brief Alloc memory of system
+*
+* @param[in] size: memory size
+*
+* @note This API is used to alloc memory of system.
+*
+* @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
+*/
+VOID_T* tkl_system_psram_malloc(CONST SIZE_T size)
+{
+    return tkl_system_malloc(size);
+}
+
+/**
+* @brief Free memory of system
+*
+* @param[in] ptr: memory point
+*
+* @note This API is used to free memory of system.
+*
+* @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
+*/
+VOID_T tkl_system_psram_free(VOID_T* ptr)
+{
+    tkl_system_free(ptr);
+}
+
+/**
+ * @brief Allocate and clear the memory in psram
+ *
+ * @param[in]       nitems      the numbers of memory block
+ * @param[in]       size        the size of the memory block
+ */
+VOID_T *tkl_system_psram_calloc(size_t nitems, size_t size)
+{
+    return tkl_system_calloc(nitems, size);
+}
+
+/**
+ * @brief Re-allocate the memory in psram
+ *
+ * @param[in]       nitems      source memory address
+ * @param[in]       size        the size after re-allocate
+ */
+VOID_T *tkl_system_psram_realloc(VOID_T* ptr, size_t size)
+{
+    return tkl_system_realloc(ptr, size);
+}
+
+/**
+* @brief Get free heap size in psram
+*
+* @param VOID
+*
+* @note This API is used for getting free heap size.
+*
+* @return size of free heap
+*/
+INT_T tkl_system_psram_get_free_heap_size(VOID_T)
+{
+    return tkl_system_get_free_heap_size();
+}

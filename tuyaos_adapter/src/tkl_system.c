@@ -14,7 +14,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <time.h>
-
+#include <stdio.h>
 /**
 * @brief Get system ticket count
 *
@@ -134,4 +134,27 @@ OPERATE_RET tkl_cpu_sleep_mode_set(BOOL_T enable, TUYA_CPU_SLEEP_MODE_E mode)
 OPERATE_RET tkl_system_get_cpu_info(TUYA_CPU_INFO_T **cpu_ary, int *cpu_cnt)
 {
     return OPRT_NOT_FOUND;
+}
+
+/**
+ * @brief system enter critical
+ *
+ * @return  irq status
+ */
+UINT_T tkl_system_enter_critical(VOID_T)
+{
+    // No operation in Linux platform
+    return 0;
+}
+
+/**
+ * @brief system exit critical
+ *
+ * @param[in]   irq_mask: irq mask
+ * @return  none
+ */
+VOID_T tkl_system_exit_critical(UINT_T irq_mask)
+{
+    // No operation in Linux platform
+    return;
 }
