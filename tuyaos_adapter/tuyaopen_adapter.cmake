@@ -129,6 +129,7 @@ if(CONFIG_ENABLE_AUDIO)
     
     ## audio subsystem library
     collect_library("${AUDIO_LIB_PATH}/audio_subsys" "audio_subsys")
+    include_directories("${AUDIO_LIB_PATH}/audio_subsys/include")
 
     ## MNN library
     collect_library("${AUDIO_LIB_PATH}/MNN" "MNN")

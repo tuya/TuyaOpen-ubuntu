@@ -11,6 +11,7 @@
 #include "tkl_semaphore.h"
 #include "tuya_ringbuf.h"
 #include <stdint.h>
+#include <stdio.h>
 
 #include "tkl_asr.h"
 
