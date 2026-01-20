@@ -135,3 +135,24 @@ OPERATE_RET tkl_system_get_cpu_info(TUYA_CPU_INFO_T **cpu_ary, int *cpu_cnt)
 {
     return OPRT_NOT_FOUND;
 }
+
+/**
+ * @brief system enter critical
+ *
+ * @return  irq status
+ */
+uint32_t tkl_system_enter_critical(void)
+{
+    return 0;
+}
+
+/**
+ * @brief system exit critical
+ *
+ * @param[in]   irq_mask: irq mask
+ * @return  none
+ */
+void tkl_system_exit_critical(uint32_t irq_mask)
+{
+    return;
+}

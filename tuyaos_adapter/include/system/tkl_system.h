@@ -45,8 +45,6 @@ void tkl_system_exit_critical(uint32_t irq_mask);
 #define TKL_EXIT_CRITICAL()         \
     tkl_system_exit_critical(__irq_mask)
 
-
-
 /**
 * @brief system reset
 *
