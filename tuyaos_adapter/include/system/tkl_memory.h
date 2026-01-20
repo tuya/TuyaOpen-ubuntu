@@ -68,42 +68,53 @@ void *tkl_system_realloc(void* ptr, size_t size);
 int tkl_system_get_free_heap_size(void);
 
 /**
- * @brief Alloc memory from PSRAM (stub for Ubuntu - uses regular malloc)
- *
- * @param[in] size: memory size
- *
- * @note On Ubuntu, PSRAM doesn't exist, so this is mapped to regular malloc
- *
- * @return the memory address malloced
- */
-static inline void *tkl_system_psram_malloc(SIZE_T size)
-{
-    return tkl_system_malloc(size);
-}
+* @brief Alloc memory of system
+*
+* @param[in] size: memory size
+*
+* @note This API is used to alloc memory of system.
+*
+* @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
+*/
+VOID_T* tkl_system_psram_malloc(CONST SIZE_T size);
 
 /**
- * @brief Free memory from PSRAM (stub for Ubuntu - uses regular free)
- *
- * @param[in] ptr: memory point
- *
- * @note On Ubuntu, PSRAM doesn't exist, so this is mapped to regular free
- *
- * @return void
- */
-static inline void tkl_system_psram_free(void* ptr)
-{
-    tkl_system_free(ptr);
-}
+* @brief Free memory of system
+*
+* @param[in] ptr: memory point
+*
+* @note This API is used to free memory of system.
+*
+* @return OPRT_OK on success. Others on error, please refer to tuya_error_code.h
+*/
+VOID_T tkl_system_psram_free(VOID_T* ptr);
 
 /**
- * @brief Get free PSRAM heap size (stub for Ubuntu)
+ * @brief Allocate and clear the memory in psram
  *
- * @return heap size
+ * @param[in]       nitems      the numbers of memory block
+ * @param[in]       size        the size of the memory block
  */
-static inline int tkl_system_get_psram_free_heap_size(void)
-{
-    return tkl_system_get_free_heap_size();
-}
+VOID_T *tkl_system_psram_calloc(size_t nitems, size_t size);
+
+/**
+ * @brief Re-allocate the memory in psram
+ *
+ * @param[in]       nitems      source memory address
+ * @param[in]       size        the size after re-allocate
+ */
+VOID_T *tkl_system_psram_realloc(VOID_T* ptr, size_t size);
+
+/**
+* @brief Get free heap size in psram
+*
+* @param VOID
+*
+* @note This API is used for getting free heap size.
+*
+* @return size of free heap
+*/
+INT_T tkl_system_psram_get_free_heap_size(VOID_T);
 
 #ifdef __cplusplus
 }
