@@ -65,11 +65,27 @@ include_directories(
     ${CMAKE_CURRENT_LIST_DIR}/include/pwm
     ${CMAKE_CURRENT_LIST_DIR}/include/rtc
     ${CMAKE_CURRENT_LIST_DIR}/include/security
+    ${CMAKE_CURRENT_LIST_DIR}/include/spi
     ${CMAKE_CURRENT_LIST_DIR}/include/system
     ${CMAKE_CURRENT_LIST_DIR}/include/uart
     ${CMAKE_CURRENT_LIST_DIR}/include/utilities/include
     ${CMAKE_CURRENT_LIST_DIR}/include/watchdog
 )
+
+# gpio files
+if(CONFIG_ENABLE_GPIO STREQUAL "y")
+    list(APPEND SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/tkl_gpio.c")
+endif()
+
+# i2c files
+if(CONFIG_ENABLE_I2C STREQUAL "y")
+    list(APPEND SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/tkl_i2c.c")
+endif()
+
+# spi files
+if(CONFIG_ENABLE_SPI STREQUAL "y")
+    list(APPEND SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/tkl_spi.c")
+endif()
 
 # wire files
 if(CONFIG_ENABLE_WIRED)
