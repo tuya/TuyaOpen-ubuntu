@@ -87,6 +87,16 @@ if(CONFIG_ENABLE_SPI STREQUAL "y")
     list(APPEND SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/tkl_spi.c")
 endif()
 
+# pwm files
+if(CONFIG_ENABLE_PWM STREQUAL "y")
+    list(APPEND SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/tkl_pwm.c")
+endif()
+
+# uart files
+if(CONFIG_ENABLE_UART STREQUAL "y")
+    list(APPEND SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/tkl_uart.c")
+endif()
+
 # wire files
 if(CONFIG_ENABLE_WIRED)
     list(APPEND SOURCES 
