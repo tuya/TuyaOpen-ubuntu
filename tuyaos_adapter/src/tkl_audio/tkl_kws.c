@@ -1,5 +1,5 @@
 /**
- * @file tkl_asr.c
+ * @file tkl_kws.c
  * @version 0.1
  * @date 2025-04-08
  */
@@ -15,7 +15,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "tkl_asr.h"
+#include "tkl_kws.h"
 
 #include "tdd_audio_alsa.h"
 
@@ -25,11 +25,11 @@
 ************************macro define************************
 ***********************************************************/
 // mono 16k 16bit, 20ms frame -> 320bytes
-#define TKL_ASR_FRAME_SIZE   (320 * 2) // 16bit
-#define KWS_RING_BUFF_LEN    (TKL_ASR_FRAME_SIZE * (2000 / 20)) // 2s buffer for 16kHz, 16bit audio
+#define TKL_KWS_FRAME_SIZE   (320 * 2) // 16bit
+#define KWS_RING_BUFF_LEN    (TKL_KWS_FRAME_SIZE * (2000 / 20)) // 2s buffer for 16kHz, 16bit audio
 
 #define MODEL_CHUNK_TIME_MS   (300) // 300ms chunk for kws model
-#define MODEL_CHUNK_SIZE      (MODEL_CHUNK_TIME_MS / 20 * TKL_ASR_FRAME_SIZE) // 16kHz, 16bit
+#define MODEL_CHUNK_SIZE      (MODEL_CHUNK_TIME_MS / 20 * TKL_KWS_FRAME_SIZE) // 16kHz, 16bit
 
 /***********************************************************
 ***********************typedef define***********************
@@ -37,12 +37,12 @@
 typedef struct {
     uint32_t   w32WakeWord;
     char *asr_txt;
-    TKL_ASR_WAKEUP_WORD_E wakeup_word;
+    TKL_KWS_WAKEUP_WORD_E wakeup_word;
 } ASR_WAKEUP_WORD_MAP_T;
 
 typedef struct {
     audio_subsys_module_t* module;
-    TKL_ASR_WAKEUP_CB wakeup_cb;
+    TKL_KWS_WAKEUP_CB wakeup_cb;
     TKL_THREAD_HANDLE kws_thread;
     TUYA_RINGBUFF_T mic_ringbuf;
 } TKL_KWS_CTX_S;
@@ -52,7 +52,7 @@ typedef struct {
 ***********************************************************/
 
 static ASR_WAKEUP_WORD_MAP_T cASR_WAKEUP_WORD_MAP[] = {
-    {1, "你好涂鸦",    TKL_ASR_WAKEUP_NIHAO_TUYA}
+    {1, "你好涂鸦",    TKL_KWS_WAKEUP_NIHAO_TUYA}
 };
 
 static TKL_KWS_CTX_S g_kws_ctx = {0};
@@ -78,7 +78,7 @@ void __tkl_kws_process(int16_t *mic_data, int16_t *ref_data, int16_t *out_data, 
 
 static int __tkl_kws_result(void* data, int dlen, int flag, void* userdata) {
     if (flag == 1 && g_kws_ctx.wakeup_cb != NULL) {
-        g_kws_ctx.wakeup_cb(TKL_ASR_WAKEUP_NIHAO_TUYA);
+        g_kws_ctx.wakeup_cb(TKL_KWS_WAKEUP_NIHAO_TUYA);
         // printf("data[%d] %p %s, flag %d, kws_count %d\n",
         //     dlen, data, (char*)data, flag, kws_count);
     }
@@ -87,7 +87,7 @@ static int __tkl_kws_result(void* data, int dlen, int flag, void* userdata) {
     return 0;
 }
 
-static void __tkl_asr_task(void *args)
+static void __tkl_kws_task(void *args)
 {
     uint8_t *mic_data = NULL;
 
@@ -118,7 +118,7 @@ static void __tkl_asr_task(void *args)
 
 }
 
-OPERATE_RET tkl_asr_init(void)
+OPERATE_RET tkl_kws_init(void)
 {
     OPERATE_RET rt = OPRT_OK;
 
@@ -166,7 +166,7 @@ OPERATE_RET tkl_asr_init(void)
     err = g_kws_ctx.module->set_callback(g_kws_ctx.module->self, __tkl_kws_result, NULL);
     if (err != 0) {
         printf("kws module set callback failed\n");
-        tkl_asr_deinit();
+        tkl_kws_deinit();
         return -1;
     }
 
@@ -174,7 +174,7 @@ OPERATE_RET tkl_asr_init(void)
                         "tkl_kws_task",
                         4096,
                         4,
-                        __tkl_asr_task,
+                        __tkl_kws_task,
                         NULL);
 
 #if defined(ENABLE_AUDIO_ALSA) && (ENABLE_AUDIO_ALSA == 1)
@@ -184,23 +184,23 @@ OPERATE_RET tkl_asr_init(void)
     return rt;
 }
 
-OPERATE_RET tkl_asr_enable(void)
+OPERATE_RET tkl_kws_enable(void)
 {
     return OPRT_OK;
 }
 
-OPERATE_RET tkl_asr_disable(void)
+OPERATE_RET tkl_kws_disable(void)
 {
     return OPRT_OK;
 }
 
-OPERATE_RET tkl_asr_reg_wakeup_cb(TKL_ASR_WAKEUP_CB wakeup_cb)
+OPERATE_RET tkl_kws_reg_wakeup_cb(TKL_KWS_WAKEUP_CB wakeup_cb)
 {
     g_kws_ctx.wakeup_cb = wakeup_cb;
     return OPRT_OK;
 }
 
-OPERATE_RET tkl_asr_deinit(void)
+OPERATE_RET tkl_kws_deinit(void)
 {
     if (g_kws_ctx.module == NULL) {
         return OPRT_OK;
