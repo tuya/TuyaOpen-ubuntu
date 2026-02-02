@@ -278,8 +278,7 @@ def download_and_setup_toolchain(toolchain_root, toolchain_config):
 def prepare_raspberry_pi():
     """Prepare Raspberry Pi platform"""
     toolchain_root = get_toolchain_root()
-    # return download_and_setup_toolchain(toolchain_root, AARCH64_14_2_TOOLCHAIN_CONFIGS)
-    return download_and_setup_toolchain(toolchain_root, AARCH64_13_3_TOOLCHAIN_CONFIGS)
+    return download_and_setup_toolchain(toolchain_root, AARCH64_14_2_TOOLCHAIN_CONFIGS)
 
 def prepare_dshanpi_a1():
     """Prepare DshanPi A1 platform"""
