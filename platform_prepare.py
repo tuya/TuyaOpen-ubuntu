@@ -79,6 +79,46 @@ AARCH64_14_2_TOOLCHAIN_CONFIGS = {
 # Utility Functions
 # ============================================================================
 
+def is_cross_compile():
+    """
+    Check if current environment requires cross-compilation.
+    
+    Reads the device model from /sys/firmware/devicetree/base/model
+    and determines if we're running on the target device (native compile)
+    or on a different host (cross-compile).
+    
+    Returns:
+        bool: True if cross-compilation is needed, False for native compilation
+    """
+    # Check if running on Linux
+    if platform.system().lower() != "linux":
+        return True
+    
+    # Check device model file
+    model_file = "/sys/firmware/devicetree/base/model"
+    if not os.path.exists(model_file):
+        return True
+    
+    try:
+        with open(model_file, 'r') as f:
+            device_model = f.read().lower()
+        
+        # Check if running on DshanPi A1
+        if "dshanpi a1" in device_model:
+            return False
+        
+        # Check if running on Raspberry Pi
+        if "raspberry pi" in device_model:
+            return False
+        
+        # Other devices need cross-compilation
+        return True
+        
+    except Exception as e:
+        print(f"Warning: Failed to read device model: {e}")
+        return True
+
+
 def get_toolchain_root():
     """Get the root directory for the toolchain."""
     current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -308,6 +348,9 @@ def main():
         "DshanPi_A1": prepare_dshanpi_a1,
         "Ubuntu": prepare_ubuntu,
     }
+
+    if not is_cross_compile():
+        sys.exit(0)
     
     handler = platform_handlers.get(platform_chip)
     
