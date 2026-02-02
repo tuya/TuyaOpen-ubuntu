@@ -83,6 +83,18 @@ endif()
 
 list(APPEND TUYAOPEN_FOUND_LIBRARIES "m" "stdc++")
 
+# Try to link with libmvec for vectorized math functions used by MNN
+# libmvec is part of glibc on ARM64/AArch64 systems and provides SIMD optimized math functions
+find_library(MVEC_LIBRARY mvec)
+if(MVEC_LIBRARY)
+    list(APPEND TUYAOPEN_FOUND_LIBRARIES "mvec")
+    message(STATUS "Found libmvec: ${MVEC_LIBRARY}")
+else()
+    message(WARNING "libmvec not found. MNN library requires libmvec for vectorized math operations.")
+    message(WARNING "On Debian/Ubuntu: sudo apt-get install libc6-dev")
+    message(WARNING "If link errors persist, the MNN library may need to be rebuilt without vector math optimizations.")
+endif()
+
 target_link_libraries(${CONFIG_PROJECT_NAME}
     -Wl,--start-group
     ${TUYAOPEN_FOUND_LIBRARIES}

@@ -21,8 +21,44 @@ from tools.util import get_country_code, rm_rf, calc_sha256, extract_archive
 # ============================================================================
 
 # Toolchain configuration info
+# https://developer.arm.com/downloads/-/gnu-a
+AARCH64_10_3_TOOLCHAIN_CONFIGS = {
+    "linux": {
+        "url": "https://developer.arm.com/-/media/files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-x86_64-aarch64-none-linux-gnu.tar.xz?rev=1cb9c51b94f54940bdcccd791451cec3&revision=1cb9c51b-94f5-4940-bdcc-cd791451cec3&hash=448E26250A9F882931F13D985ADA554B",
+        "url_cn": "https://images.tuyacn.com/rms-static/52579ba0-eaec-11f0-9295-ddfc290a59b7-1767696116314.tar.xz?tyName=gcc-arm-10.3-2021.07-x86_64-aarch64-none-linux-gnu.tar.xz",
+        "sha256": "1e33d53dea59c8de823bbdfe0798280bdcd138636c7060da9d77a97ded095a84",
+        "filename": "gcc-arm-10.3-2021.07-x86_64-aarch64-none-linux-gnu.tar.xz",
+        "folder": "aarch64-none-linux-gnu-10.3-2021.07",
+    },
+    "windows": {
+        "url": "https://developer.arm.com/-/media/files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-mingw-w64-i686-aarch64-none-linux-gnu.tar.xz?rev=06b6c36e428c48fda4b6d907f17308be&revision=06b6c36e-428c-48fd-a4b6-d907f17308be&hash=10E328515D3FB57DBADA9482D6E70776",
+        "url_cn": "https://images.tuyacn.com/rms-static/525551b0-eaec-11f0-946a-f10d211a0860-1767696116299.tar.xz?tyName=gcc-arm-10.3-2021.07-mingw-w64-i686-aarch64-none-linux-gnu.tar.xz",
+        "sha256": "30cd231bf2dd224ae8b14e7ce147033093b7f9813dabb89bce8ab0ae79f586af",
+        "filename": "gcc-arm-10.3-2021.07-mingw-w64-i686-aarch64-none-linux-gnu.tar.xz",
+        "folder": "aarch64-none-linux-gnu-10.3-2021.07",
+    },
+}
+
 # https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads
-TOOLCHAIN_CONFIGS = {
+AARCH64_13_3_TOOLCHAIN_CONFIGS = {
+    "linux": {
+        "url": "https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz",
+        "url_cn": "https://images.tuyacn.com/rms-static/321bf900-fdb4-11f0-9295-ddfc290a59b7-1769761082512.tar.xz?tyName=arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz",
+        "sha256": "47aeefc02b0ee39f6d4d1812110952975542d365872a7474b5306924bca4faa1",
+        "filename": "arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz",
+        "folder": "aarch64-none-linux-gnu-13.3-2024.04",
+    },
+    "windows": {
+        "url": "https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-mingw-w64-i686-aarch64-none-linux-gnu.zip",
+        "url_cn": "https://images.tuyacn.com/rms-static/321a9970-fdb4-11f0-946a-f10d211a0860-1769761082503.zip?tyName=arm-gnu-toolchain-13.3.rel1-mingw-w64-i686-aarch64-none-linux-gnu.zip",
+        "sha256": "bd5f4808995af2ec647bd0fe8f62815e2c65abcf0558f38f183188d05328d0a0",
+        "filename": "arm-gnu-toolchain-14.2.rel1-mingw-w64-i686-aarch64-none-linux-gnu.zip",
+        "folder": "aarch64-none-linux-gnu-13.3-2024.04",
+    },
+}
+
+# https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads
+AARCH64_14_2_TOOLCHAIN_CONFIGS = {
     "linux": {
         "url": "https://developer.arm.com/-/media/Files/downloads/gnu/14.2.rel1/binrel/arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz",
         "url_cn": "https://images.tuyacn.com/rms-static/96000060-f5df-11f0-9295-ddfc290a59b7-1768900109158.tar.xz?tyName=arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz",
@@ -38,8 +74,6 @@ TOOLCHAIN_CONFIGS = {
         "folder": "aarch64-none-linux-gnu-14.2-2024.10",
     },
 }
-
-
 
 # ============================================================================
 # Utility Functions
@@ -120,7 +154,7 @@ def verify_file_checksum(file_path, expected_sha256):
         return False
 
 
-def get_toolchain_config():
+def get_toolchain_config(toolchain_config):
     """
     Get toolchain config for current system.
     
@@ -133,7 +167,7 @@ def get_toolchain_config():
     if sys_name.startswith("mingw") or sys_name == "windows":
         sys_name = "windows"
     
-    config = TOOLCHAIN_CONFIGS.get(sys_name)
+    config = toolchain_config.get(sys_name)
     
     if config:
         # Provide alternative URL for China users if available
@@ -149,25 +183,25 @@ def get_toolchain_config():
 # Main Functionality
 # ============================================================================
 
-def download_and_setup_toolchain(toolchain_root):
+def download_and_setup_toolchain(toolchain_root, toolchain_config):
     """
     Download and set up the toolchain.
     
     Args:
         toolchain_root: Toolchain install root directory
-        
+        toolchain_config: Toolchain configuration dictionary
     Returns:
         bool: Whether succeeded
     """
-    print("=" * 60)
-    print("Preparing to download Raspberry Pi toolchain...")
-    print("=" * 60)
-    
-    # Get system-appropriate toolchain config
-    config = get_toolchain_config()
+    # Get system-appropriate toolchain config first
+    config = get_toolchain_config(toolchain_config)
     if not config:
         print(f"Unsupported system: {platform.system()}")
         return False
+    
+    print("=" * 60)
+    print(f"Preparing to download toolchain [{config.get('folder', '')}]...")
+    print("=" * 60)
     
     # Make sure toolchain root exists
     os.makedirs(toolchain_root, exist_ok=True)
@@ -244,14 +278,18 @@ def download_and_setup_toolchain(toolchain_root):
 def prepare_raspberry_pi():
     """Prepare Raspberry Pi platform"""
     toolchain_root = get_toolchain_root()
-    return download_and_setup_toolchain(toolchain_root)
+    # return download_and_setup_toolchain(toolchain_root, AARCH64_14_2_TOOLCHAIN_CONFIGS)
+    return download_and_setup_toolchain(toolchain_root, AARCH64_13_3_TOOLCHAIN_CONFIGS)
 
+def prepare_dshanpi_a1():
+    """Prepare DshanPi A1 platform"""
+    toolchain_root = get_toolchain_root()
+    return download_and_setup_toolchain(toolchain_root, AARCH64_13_3_TOOLCHAIN_CONFIGS)
 
 def prepare_ubuntu():
     """Prepare Ubuntu platform"""
     print("Ubuntu platform preparation complete")
     return True
-
 
 # ============================================================================
 # Program Entry
@@ -268,6 +306,7 @@ def main():
     # Platform handler map
     platform_handlers = {
         "Raspberry_Pi": prepare_raspberry_pi,
+        "DshanPi_A1": prepare_dshanpi_a1,
         "Ubuntu": prepare_ubuntu,
     }
     

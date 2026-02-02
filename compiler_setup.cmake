@@ -23,7 +23,16 @@ if (IS_CROSS_COMPILE)
         endif()
 
         get_filename_component(TOOLCHAIN_PREFIX "${TOOLCHAIN_PREFIX}/${CONFIG_COMPILE_PREX}" ABSOLUTE)
+    elseif (PLATFORM_BOARD STREQUAL "DshanPi_A1")
+        get_filename_component(TOOLCHAIN_PREFIX "${TOOLCHAIN_PATH}/aarch64-none-linux-gnu-13.3-2024.04/bin" ABSOLUTE)
+        # TOOLCHAIN_PREFIX Check
+        if(NOT EXISTS "${TOOLCHAIN_PREFIX}")
+            message(FATAL_ERROR "Toolchain directory does not exist: ${TOOLCHAIN_PREFIX}")
+        endif()
 
+        get_filename_component(TOOLCHAIN_PREFIX "${TOOLCHAIN_PREFIX}/${CONFIG_COMPILE_PREX}" ABSOLUTE)
+    else()
+        message(FATAL_ERROR "Unsupported PLATFORM_BOARD for cross compilation: ${PLATFORM_BOARD}")
     endif()
 
     # On Windows, add .exe suffix to executables
