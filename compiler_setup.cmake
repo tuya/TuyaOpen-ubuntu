@@ -8,7 +8,6 @@ if ("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
     if (EXISTS "/sys/firmware/devicetree/base/model")
         file(READ "/sys/firmware/devicetree/base/model" DEVICE_MODEL)
         string(TOLOWER "${DEVICE_MODEL}" DEVICE_MODEL_LOWER)
-        message(FATAL_ERROR "DEVICE_MODEL: ${DEVICE_MODEL}")
         # DshanPi_A1
         if (DEVICE_MODEL_LOWER MATCHES "dshanpi a1")
             set(IS_CROSS_COMPILE FALSE)
