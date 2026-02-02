@@ -4,6 +4,8 @@
  * @date 2025-04-08
  */
 
+#include "tuya_cloud_types.h"
+
 #include "tkl_memory.h"
 #include "tkl_system.h"
 #include "tkl_thread.h"
@@ -120,8 +122,15 @@ OPERATE_RET tkl_asr_init(void)
 {
     OPERATE_RET rt = OPRT_OK;
 
-    char modelpath[] = "/home/pi/Desktop/models/mdtc_chunk_300ms.mnn";
-    char tokenpath[] = "/home/pi/Desktop/models/tokens.txt";
+    char *modelpath = KWS_MODEL_PATH;
+    char *tokenpath = KWS_MODEL_TOKEN_PATH;
+
+    if (modelpath == NULL || strlen(modelpath) == 0) {
+        modelpath = "./models/mdtc_chunk_300ms.mnn";
+    }
+    if (tokenpath == NULL || strlen(tokenpath) == 0) {
+        tokenpath = "./models/tokens.txt";
+    }
 
     // ringbuf create for mic data
     rt = tuya_ring_buff_create(KWS_RING_BUFF_LEN, OVERFLOW_STOP_TYPE, &g_kws_ctx.mic_ringbuf);

@@ -1,17 +1,35 @@
 # have COMPILE_PREX
 if (NOT DEFINED CONFIG_COMPILE_PREX)
-    set(CONFIG_COMPILE_PREX "")
+    set(CONFIG_COMPILE_PREX "aarch64-none-linux-gnu-")
+endif()
+
+# Is cross compile?
+if ("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Linux")
+    if (EXISTS "/sys/firmware/devicetree/base/model")
+        file(READ "/sys/firmware/devicetree/base/model" DEVICE_MODEL)
+        string(TOLOWER "${DEVICE_MODEL}" DEVICE_MODEL_LOWER)
+        message(FATAL_ERROR "DEVICE_MODEL: ${DEVICE_MODEL}")
+        # DshanPi_A1
+        if (DEVICE_MODEL_LOWER MATCHES "dshanpi a1")
+            set(IS_CROSS_COMPILE FALSE)
+        else()
+            set(IS_CROSS_COMPILE TRUE)
+        endif()
+        # Raspberry_Pi
+        if (DEVICE_MODEL_LOWER MATCHES "raspberry pi")
+            set(IS_CROSS_COMPILE FALSE)
+        else()
+            set(IS_CROSS_COMPILE TRUE)
+        endif()
+    else()
+        set(IS_CROSS_COMPILE TRUE)
+    endif()
+else()
+    set(IS_CROSS_COMPILE TRUE)
 endif()
 
 # Toolchain path
 get_filename_component(TOOLCHAIN_PATH "${CMAKE_CURRENT_LIST_DIR}/../tools/" ABSOLUTE)
-
-# Is cross compile?
-if ("${CONFIG_COMPILE_PREX}" STREQUAL "")
-    set(IS_CROSS_COMPILE FALSE)
-else()
-    set(IS_CROSS_COMPILE TRUE)
-endif()
 
 if (IS_CROSS_COMPILE)
     set(TOOLCHAIN_PREFIX "")
