@@ -195,7 +195,9 @@ OPERATE_RET tkl_vad_init(TKL_VAD_CONFIG_T *config)
 
     __s_frame_size = AEC_VAD_FRAME_SIZE;
 
+#if defined(ENABLE_AUDIO_ALSA) && (ENABLE_AUDIO_ALSA == 1)
     tdd_audio_alsa_register_vad_feed_cb(__tkl_vad_process);
+#endif
 
     return OPRT_OK;
 

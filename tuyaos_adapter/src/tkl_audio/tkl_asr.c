@@ -177,7 +177,9 @@ OPERATE_RET tkl_asr_init(void)
                         __tkl_asr_task,
                         NULL);
 
+#if defined(ENABLE_AUDIO_ALSA) && (ENABLE_AUDIO_ALSA == 1)
     tdd_audio_alsa_register_kws_feed_cb(__tkl_kws_process);
+#endif
 
     return rt;
 }
