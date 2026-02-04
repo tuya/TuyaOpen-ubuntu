@@ -30,10 +30,12 @@ typedef struct {
 
 static uart_dev_t s_uart_dev[3];
 
+#ifndef TKL_UART_USE_FAKE
 #ifdef CONFIG_TKL_UART_USE_FAKE
 #define TKL_UART_USE_FAKE 1
 #else
 #define TKL_UART_USE_FAKE 0
+#endif
 #endif
 
 #if !TKL_UART_USE_FAKE
@@ -189,7 +191,12 @@ OPERATE_RET tkl_uart_init(uint32_t port_id, TUYA_UART_BASE_CFG_T *cfg)
         struct termios term_orig;
         struct termios term_vi;
 
-        s_uart_dev[port_num].fd = open("/dev/stdin", O_RDWR);
+        /*
+         * Fake UART on Linux:
+         * - RX: read from stdin (interactive console)
+         * - TX: write to stdout (see tkl_uart_write)
+         */
+        s_uart_dev[port_num].fd = open("/dev/stdin", O_RDONLY);
         if (0 > s_uart_dev[port_num].fd) {
             return OPRT_COM_ERROR;
         }
@@ -303,7 +310,7 @@ int tkl_uart_write(uint32_t port_id, void *buff, uint16_t len)
     uint32_t port_num = TUYA_UART_GET_PORT_NUMBER(port_id);
 
     if (0 == port_num) {
-        return write(s_uart_dev[port_num].fd, buff, len);
+        return write(STDOUT_FILENO, buff, len);
     } else if (1 == port_num) {
         int port = 7878;
         const char *ip = "172.16.61.117"; // IP地址字符串
