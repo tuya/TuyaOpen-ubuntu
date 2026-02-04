@@ -44,15 +44,15 @@ AARCH64_13_3_TOOLCHAIN_CONFIGS = {
     "linux": {
         "url": "https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz",
         "url_cn": "https://images.tuyacn.com/rms-static/321bf900-fdb4-11f0-9295-ddfc290a59b7-1769761082512.tar.xz?tyName=arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz",
-        "sha256": "47aeefc02b0ee39f6d4d1812110952975542d365872a7474b5306924bca4faa1",
-        "filename": "arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz",
+        "sha256": "322f0b4482fc0d9fa0bb468134841f08d8c554c54ff5aa29a13a7a24bf7e1eb5",
+        "filename": "arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz",
         "folder": "aarch64-none-linux-gnu-13.3-2024.04",
     },
     "windows": {
         "url": "https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-mingw-w64-i686-aarch64-none-linux-gnu.zip",
         "url_cn": "https://images.tuyacn.com/rms-static/321a9970-fdb4-11f0-946a-f10d211a0860-1769761082503.zip?tyName=arm-gnu-toolchain-13.3.rel1-mingw-w64-i686-aarch64-none-linux-gnu.zip",
-        "sha256": "bd5f4808995af2ec647bd0fe8f62815e2c65abcf0558f38f183188d05328d0a0",
-        "filename": "arm-gnu-toolchain-14.2.rel1-mingw-w64-i686-aarch64-none-linux-gnu.zip",
+        "sha256": "e5cc8d9a7f1970b7605d14431fd011e41d63d13ded61eb53f03b578a9343926c",
+        "filename": "arm-gnu-toolchain-13.3.rel1-mingw-w64-i686-aarch64-none-linux-gnu.zip",
         "folder": "aarch64-none-linux-gnu-13.3-2024.04",
     },
 }
