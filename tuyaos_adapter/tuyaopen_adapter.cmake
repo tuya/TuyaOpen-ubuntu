@@ -72,6 +72,14 @@ include_directories(
     ${CMAKE_CURRENT_LIST_DIR}/include/watchdog
 )
 
+# camera files (V4L2)
+if(CONFIG_ENABLE_CAMERA STREQUAL "y" AND CONFIG_ENABLE_CAMERA_V4L2 STREQUAL "y")
+    list(APPEND SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/tkl_camera/tkl_camera_v4l2.c")
+    include_directories(
+        ${CMAKE_CURRENT_LIST_DIR}/include/camera
+    )
+endif()
+
 # gpio files
 if(CONFIG_ENABLE_GPIO STREQUAL "y")
     list(APPEND SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/tkl_gpio.c")
