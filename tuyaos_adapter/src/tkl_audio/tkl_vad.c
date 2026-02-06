@@ -13,7 +13,9 @@
 
 #include "tkl_output.h"
 
+#if defined(ENABLE_AUDIO_ALSA) && (ENABLE_AUDIO_ALSA == 1)
 #include "tdd_audio_alsa.h"
+#endif
 
 #include "stdio.h"
 

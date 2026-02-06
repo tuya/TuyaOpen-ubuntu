@@ -17,7 +17,9 @@
 
 #include "tkl_kws.h"
 
+#if defined(ENABLE_AUDIO_ALSA) && (ENABLE_AUDIO_ALSA == 1)
 #include "tdd_audio_alsa.h"
+#endif
 
 #include "kws/audio_subsys_kws_factory2.h"
 
