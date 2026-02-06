@@ -128,10 +128,10 @@ OPERATE_RET tkl_kws_init(void)
     char *tokenpath = KWS_MODEL_TOKEN_PATH;
 
     if (modelpath == NULL || strlen(modelpath) == 0) {
-        modelpath = "./models/mdtc_chunk_300ms.mnn";
+        modelpath = "~/tuyaopen_models/mdtc_chunk_300ms.mnn";
     }
     if (tokenpath == NULL || strlen(tokenpath) == 0) {
-        tokenpath = "./models/tokens.txt";
+        tokenpath = "~/tuyaopen_models/tokens.txt";
     }
 
     // ringbuf create for mic data
