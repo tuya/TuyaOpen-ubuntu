@@ -12,6 +12,7 @@
 #include "tkl_bluetooth.h"
 #include "tuya_cloud_types.h"
 #include "tuya_error_code.h"
+#include <stdio.h>
 
 //#include "tuya_bluez_api.h"
 #include "tal_log.h"
