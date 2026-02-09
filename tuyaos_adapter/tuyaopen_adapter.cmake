@@ -135,12 +135,21 @@ endif()
 
 # bluetooth files
 if(CONFIG_ENABLE_BLUETOOTH)
-    file(GLOB_RECURSE BT_SRC "${CMAKE_CURRENT_LIST_DIR}/src/tkl_bt/*.c")
+    file(GLOB_RECURSE BT_SRC "${CMAKE_SOURCE_DIR}/tuyaos_adapter/src/tkl_bt/bluez_inc/binc/*.c")
+    list(APPEND BT_SRC 
+        "${CMAKE_SOURCE_DIR}/tuyaos_adapter/src/tkl_bt/tkl_bluetooth.c"
+        "${CMAKE_SOURCE_DIR}/tuyaos_adapter/src/tkl_bt/bt_dbus_api.c"
+        "${CMAKE_SOURCE_DIR}/tuyaos_adapter/src/tkl_bt/bt_hci_adv_api.c"
+    )
+
     set(BT_INC)
     list(APPEND BT_INC
-        "${CMAKE_CURRENT_LIST_DIR}/include/bluetooth"
-        "${CMAKE_CURRENT_LIST_DIR}/include/hci"
-        "${CMAKE_CURRENT_LIST_DIR}/src/tkl_bt/include"
+        "${CMAKE_SOURCE_DIR}/tuyaos_adapter/src/tkl_bt/bluez_inc/binc"
+        "${CMAKE_SOURCE_DIR}/tuyaos_adapter/include/bluetooth"
+        /usr/include/glib-2.0
+        /usr/lib/x86_64-linux-gnu/glib-2.0/include
+        /usr/include/dbus-1.0
+        /usr/lib/x86_64-linux-gnu/dbus-1.0/include
     )
 
     list(APPEND SOURCES ${BT_SRC})

@@ -62,6 +62,10 @@ int wifi_get_ip(char *ifname, char *ip)
     struct ifreq ifr;
     struct sockaddr_in *sin;
 
+    if (ip != NULL) {
+        ip[0] = '\0';
+    }
+
     fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (fd < 0) {
         TKL_LOGE("create socket err : %s",strerror(errno));
@@ -80,6 +84,10 @@ int wifi_get_ip(char *ifname, char *ip)
     /* get ip */
     strcpy(ifr.ifr_name, ifname);
     if (ioctl(fd, SIOCGIFADDR, &ifr) <0 ) {
+        if (errno == EADDRNOTAVAIL) {
+            close(fd);
+            return 1;
+        }
         TKL_LOGE("socket ioctl err : %s",strerror(errno));
         close(fd);
         return -1;
@@ -382,6 +390,26 @@ static int process_alive(char *process)
     return ret;
 }
 
+static int wpa_ctrl_iface_ready(const char *ifname)
+{
+    char ctrl_path[256];
+
+    if (ifname == NULL || ifname[0] == '\0') {
+        return 0;
+    }
+
+    snprintf(ctrl_path, sizeof(ctrl_path), "%s/%s", WPA_CTRL_INTERFACE, ifname);
+    return access(ctrl_path, F_OK) == 0;
+}
+
+static void process_kill_if_running(char *proc)
+{
+    int alive = process_alive(proc);
+    if (alive != 0) {
+        process_kill(proc);
+    }
+}
+
 
 int wifi_scan_ap(char *ifname , AP_IF_S *aps , int max_ap)
 {
@@ -526,7 +554,10 @@ static void start_wpa(void)
 {
     char *ifname = WLAN_DEV;
     char cmd_buf[128] = {0x0};
+    char ctrl_path[256] = {0x0};
     DIR *dir = NULL;
+    int retry = 0;
+    int max_retry = 50;  /* 最多等待 5 秒 (50 * 100ms) */
 
     /* 确保控制接口/va/run是存在的,若不存在则创建该目录 */
     dir = opendir(WPA_CTRL_DIR);
@@ -538,8 +569,44 @@ static void start_wpa(void)
         closedir(dir);
     }
 
+    /* 确保 wpa_supplicant 控制接口目录存在 */
+    dir = opendir(WPA_CTRL_INTERFACE);
+    if (dir == NULL) {
+        if (mkdir(WPA_CTRL_INTERFACE, 0755) < 0) {
+            TKL_LOGE("WiFi: Create '%s' fail", WPA_CTRL_INTERFACE);
+        }
+    } else {
+        closedir(dir);
+    }
+
+    /* 停止系统的 wpa_supplicant 服务，避免冲突 */
+    TKL_LOGI("Stopping system wpa_supplicant service if running...");
+    system("systemctl stop wpa_supplicant 2>/dev/null");
+    usleep(500000);  /* 等待500ms确保服务完全停止 */
+    
+    /* 杀掉所有现有的 wpa_supplicant 进程 */
+    system("killall wpa_supplicant 2>/dev/null");
+    usleep(200000);  /* 等待200ms */
+
     snprintf(cmd_buf,sizeof(cmd_buf),WPA_SUPPLICANT" -i %s -Dnl80211 -c %s -B",ifname,WIFI_STATION_CONF);
+    TKL_LOGI("Starting wpa_supplicant: %s", cmd_buf);
     int __attribute__((unused)) ret = system(cmd_buf);
+    
+    /* 等待 wpa_supplicant 控制接口创建完成 */
+    snprintf(ctrl_path, sizeof(ctrl_path), "%s/%s", WPA_CTRL_INTERFACE, ifname);
+    TKL_LOGI("Waiting for wpa_supplicant control interface: %s", ctrl_path);
+    
+    while (retry < max_retry) {
+        if (access(ctrl_path, F_OK) == 0) {
+            TKL_LOGI("wpa_supplicant control interface is ready after %d ms", retry * 100);
+            usleep(100000);  /* 额外等待 100ms 确保接口完全就绪 */
+            return;
+        }
+        usleep(100000);  /* 等待 100ms */
+        retry++;
+    }
+    
+    TKL_LOGW("wpa_supplicant control interface not found after %d seconds, continuing anyway...", max_retry / 10);
 }
 
 static int get_passwd_and_ssid_from_wpa_file(char *ssid, char *passwd)
@@ -698,6 +765,10 @@ int wifi_station_connect(const char *ssid, const char *passwd)
     }
 
     ret = process_alive(WPA_SUPPLICANT);   /* 判断wpa_supplicant进程是否起来了 */
+    if (ret == 1 && !wpa_ctrl_iface_ready(WLAN_DEV)) {
+        TKL_LOGW("wpa_supplicant is running but ctrl iface not found, restarting");
+        ret = 0;
+    }
     if (ret == 0) {     /* wpa_supplicant 进程没有起来,手动启wpa_supplicant进程进行连接 */
         if (wpa_config_prepare(ssid, passwd)) {
             TKL_LOGE("WiFi : configure wpa_supplicant config file failed");
@@ -918,6 +989,9 @@ int wifi_ap_start(char *ifname, WF_AP_CFG_IF_S *cfg)
     char ipaddr_pre[13] = {0x0};
     UDHCPD_IP_T udhcpd_ip_t = {{0}};
 
+    process_kill_if_running("hostapd");
+    process_kill_if_running("udhcpd");
+
     ret = hostapd_conf_prepare(cfg);
     if(ret < 0) {
         TKL_LOGE("WIFI prepare hostapd.conf failed");
@@ -1038,4 +1112,3 @@ int wifi_recv_rawpacket(int rawsock, unsigned char *pkt, int pkt_len)
 
     return recv;
 }
-
