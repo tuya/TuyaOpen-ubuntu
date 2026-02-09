@@ -100,7 +100,7 @@ static uint16_t _get_char_index_by_uuid(const char *char_uuid) {
 
     return characteristic_index;
 }
-static char * _get_serv_uuid_by_char_index(uint16_t char_index) {
+static const char * _get_serv_uuid_by_char_index(uint16_t char_index) {
     uint16_t serv_index = char_index / 10;
     for (int i = 0; i < serv_count; i++) {
         if (serv_map[i].index == serv_index) {
@@ -109,7 +109,7 @@ static char * _get_serv_uuid_by_char_index(uint16_t char_index) {
     }
     return NULL;
 }
-static char * _get_char_uuid_by_char_index(uint16_t char_index) {
+static const char * _get_char_uuid_by_char_index(uint16_t char_index) {
     for (int i = 0; i < char_count; i++) {
         if (char_map[i].index == char_index) {
             return char_map[i].uuid_str;
