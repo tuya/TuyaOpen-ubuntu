@@ -48,6 +48,8 @@ endfunction()
 file(GLOB_RECURSE UTILITIES_SRC "${CMAKE_CURRENT_LIST_DIR}/include/utilities/*.c")
 file(GLOB ADAPTER_SRC "${CMAKE_CURRENT_LIST_DIR}/src/*.c")
 set(INIT_SRC "${CMAKE_CURRENT_LIST_DIR}/include/init/src/tkl_init_common.c")
+list(REMOVE_ITEM ADAPTER_SRC "${CMAKE_CURRENT_LIST_DIR}/src/tkl_wired.c")
+
 list(APPEND SOURCES 
     ${UTILITIES_SRC} 
     ${ADAPTER_SRC} 
@@ -109,6 +111,7 @@ endif()
 if(CONFIG_ENABLE_WIRED)
     list(APPEND SOURCES 
             "${CMAKE_CURRENT_LIST_DIR}/include/init/src/tkl_init_wired.c"
+            "${CMAKE_CURRENT_LIST_DIR}/src/tkl_wired.c"
     )
     include_directories(
         ${CMAKE_CURRENT_LIST_DIR}/include/wired
@@ -146,11 +149,45 @@ if(CONFIG_ENABLE_BLUETOOTH)
     list(APPEND BT_INC
         "${CMAKE_SOURCE_DIR}/tuyaos_adapter/src/tkl_bt/bluez_inc/binc"
         "${CMAKE_SOURCE_DIR}/tuyaos_adapter/include/bluetooth"
-        /usr/include/glib-2.0
-        /usr/lib/x86_64-linux-gnu/glib-2.0/include
-        /usr/include/dbus-1.0
-        /usr/lib/x86_64-linux-gnu/dbus-1.0/include
     )
+
+    # Detect GLib and D-Bus paths using pkg-config
+    find_package(PkgConfig QUIET)
+    if(PkgConfig_FOUND)
+        pkg_check_modules(GLIB2 glib-2.0 QUIET)
+        pkg_check_modules(DBUS dbus-1 QUIET)
+        
+        if(GLIB2_FOUND)
+            list(APPEND BT_INC ${GLIB2_INCLUDE_DIRS})
+            message(STATUS "Bluetooth: Found GLib-2.0 via pkg-config: ${GLIB2_INCLUDE_DIRS}")
+        else()
+            message(WARNING "GLib-2.0 not found via pkg-config for Bluetooth")
+        endif()
+        
+        if(DBUS_FOUND)
+            list(APPEND BT_INC ${DBUS_INCLUDE_DIRS})
+            message(STATUS "Bluetooth: Found D-Bus via pkg-config: ${DBUS_INCLUDE_DIRS}")
+        else()
+            message(WARNING "D-Bus not found via pkg-config for Bluetooth")
+        endif()
+    endif()
+    
+    # Fallback to manual path detection if pkg-config failed
+    if(NOT GLIB2_FOUND OR NOT DBUS_FOUND)
+        message(WARNING "Using manual path detection for Bluetooth dependencies")
+        set(MANUAL_PATHS
+            /usr/include/glib-2.0
+            /usr/lib/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu/glib-2.0/include
+            /usr/include/dbus-1.0
+            /usr/lib/${CMAKE_SYSTEM_PROCESSOR}-linux-gnu/dbus-1.0/include
+        )
+        foreach(PATH ${MANUAL_PATHS})
+            if(EXISTS ${PATH})
+                list(APPEND BT_INC ${PATH})
+                message(STATUS "Bluetooth: Manually added include path: ${PATH}")
+            endif()
+        endforeach()
+    endif()
 
     list(APPEND SOURCES ${BT_SRC})
     include_directories(${BT_INC})
