@@ -83,6 +83,10 @@ endif()
 
 list(APPEND TUYAOPEN_FOUND_LIBRARIES "m" "stdc++")
 
+if(CONFIG_ENABLE_BLUETOOTH)
+    list(APPEND TUYAOPEN_FOUND_LIBRARIES "glib-2.0" "gio-2.0" "gobject-2.0" "bluetooth" "dbus-1")
+endif()
+
 # Try to link with libmvec for vectorized math functions used by MNN
 # libmvec is part of glibc on ARM64/AArch64 systems and provides SIMD optimized math functions
 find_library(MVEC_LIBRARY mvec)
