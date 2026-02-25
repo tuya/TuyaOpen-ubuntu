@@ -30,15 +30,16 @@ typedef struct {
 
 static uart_dev_t s_uart_dev[3];
 
-#ifndef TKL_UART_USE_FAKE
-#ifdef CONFIG_TKL_UART_USE_FAKE
-#define TKL_UART_USE_FAKE 1
+
+#ifndef TKL_UART_REDIRECT_LOG_TO_STDOUT
+#if defined(CONFIG_TKL_UART_REDIRECT_LOG_TO_STDOUT)
+#define TKL_UART_REDIRECT_LOG_TO_STDOUT 1
 #else
-#define TKL_UART_USE_FAKE 0
+#define TKL_UART_REDIRECT_LOG_TO_STDOUT 0
 #endif
 #endif
 
-#if !TKL_UART_USE_FAKE
+#if !TKL_UART_REDIRECT_LOG_TO_STDOUT
 static const char *g_uart_devname[] = {
     "/dev/ttyAMA0",
     "/dev/ttyAMA1",
@@ -128,7 +129,7 @@ static void *__irq_handler(void *arg)
     }
 }
 
-#if !TKL_UART_USE_FAKE
+#if !TKL_UART_REDIRECT_LOG_TO_STDOUT
 static void *__uart_irq_handler(void *arg)
 {
     uart_dev_t *uart_dev = arg;
@@ -186,13 +187,13 @@ OPERATE_RET tkl_uart_init(uint32_t port_id, TUYA_UART_BASE_CFG_T *cfg)
         return OPRT_INVALID_PARM;
     }
 
-#if TKL_UART_USE_FAKE
+#if TKL_UART_REDIRECT_LOG_TO_STDOUT
     if (0 == port_num) {
         struct termios term_orig;
         struct termios term_vi;
 
         /*
-         * Fake UART on Linux:
+         * Dummy/redirect UART on Linux:
          * - RX: read from stdin (interactive console)
          * - TX: write to stdout (see tkl_uart_write)
          */
@@ -280,7 +281,7 @@ OPERATE_RET tkl_uart_deinit(uint32_t port_id)
         pthread_cancel(s_uart_dev[port_num].tid);
         pthread_join(s_uart_dev[port_num].tid, 0);
     }
-#if !TKL_UART_USE_FAKE
+#if !TKL_UART_REDIRECT_LOG_TO_STDOUT
     else {
         pthread_cancel(s_uart_dev[port_num].tid);
         pthread_join(s_uart_dev[port_num].tid, 0);
@@ -306,7 +307,7 @@ OPERATE_RET tkl_uart_deinit(uint32_t port_id)
  */
 int tkl_uart_write(uint32_t port_id, void *buff, uint16_t len)
 {
-#if TKL_UART_USE_FAKE
+#if TKL_UART_REDIRECT_LOG_TO_STDOUT
     uint32_t port_num = TUYA_UART_GET_PORT_NUMBER(port_id);
 
     if (0 == port_num) {
@@ -386,7 +387,7 @@ void tkl_uart_tx_irq_cb_reg(uint32_t port_id, TUYA_UART_IRQ_CB tx_cb)
  */
 int tkl_uart_read(uint32_t port_id, void *buff, uint16_t len)
 {
-#if TKL_UART_USE_FAKE
+#if TKL_UART_REDIRECT_LOG_TO_STDOUT
     uint32_t port_num = TUYA_UART_GET_PORT_NUMBER(port_id);
 
     if (0 == port_num) {
