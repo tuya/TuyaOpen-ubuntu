@@ -77,9 +77,21 @@ include_directories(
 # camera files (V4L2)
 if(CONFIG_ENABLE_CAMERA STREQUAL "y" AND CONFIG_ENABLE_CAMERA_V4L2 STREQUAL "y")
     list(APPEND SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/tkl_camera/tkl_camera_v4l2.c")
+    list(APPEND SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/tkl_jpeg_codec/tkl_jpeg_codec.c")
     include_directories(
         ${CMAKE_CURRENT_LIST_DIR}/include/camera
+        ${CMAKE_CURRENT_LIST_DIR}/include/jpeg_codec
     )
+
+    # JPEG codec dependency (libjpeg/libjpeg-turbo)
+    find_package(JPEG QUIET)
+    if(JPEG_FOUND)
+        include_directories(${JPEG_INCLUDE_DIR})
+        list(APPEND TUYAOPEN_FOUND_LIBRARIES ${JPEG_LIBRARIES})
+        message(STATUS "Camera(V4L2): Found JPEG library: ${JPEG_LIBRARIES}")
+    else()
+        message(FATAL_ERROR "Camera(V4L2): JPEG library not found; please install libjpeg-dev/libjpeg-turbo8-dev")
+    endif()
 endif()
 
 # gpio files

@@ -87,6 +87,14 @@ if(CONFIG_ENABLE_BLUETOOTH)
     list(APPEND TUYAOPEN_FOUND_LIBRARIES "glib-2.0" "gio-2.0" "gobject-2.0" "bluetooth" "dbus-1")
 endif()
 
+# SDL2 display support (Raspberry Pi desktop window display)
+if(DEFINED CONFIG_ENABLE_SDL_DISPLAY AND CONFIG_ENABLE_SDL_DISPLAY STREQUAL "y")
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(SDL2 REQUIRED sdl2)
+    list(APPEND TUYAOPEN_FOUND_LIBRARIES ${SDL2_LDFLAGS} ${SDL2_LDFLAGS_OTHER})
+    message(STATUS "SDL2 display enabled: ${SDL2_LDFLAGS}")
+endif()
+
 # Try to link with libmvec for vectorized math functions used by MNN
 # libmvec is part of glibc on ARM64/AArch64 systems and provides SIMD optimized math functions
 find_library(MVEC_LIBRARY mvec)
