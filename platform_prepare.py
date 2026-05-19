@@ -16,6 +16,9 @@ import shutil
 from tools.util import get_country_code, rm_rf, calc_sha256, extract_archive
 
 
+MAX_DOWNLOAD_ATTEMPTS = 2
+
+
 # ============================================================================
 # Constant Definitions
 # ============================================================================
@@ -246,73 +249,86 @@ def download_and_setup_toolchain(toolchain_root, toolchain_config):
     # Make sure toolchain root exists
     os.makedirs(toolchain_root, exist_ok=True)
     
-    # Check if toolchain is already installed
     toolchain_folder = os.path.join(toolchain_root, config["folder"])
     if os.path.exists(toolchain_folder):
         print(f"✓ Toolchain already exists: {config['folder']}")
         return True
-    
-    # Prepare to download
+
     download_path = os.path.join(toolchain_root, config["filename"])
-    
-    # If file exists, verify checksum first
-    if os.path.exists(download_path):
-        print(f"Found downloaded file, verifying...")
-        
-        if verify_file_checksum(download_path, config["sha256"]):
-            print("Skip downloading")
-        else:
+
+    def cleanup_toolchain_cache(extra_entries=None):
+        if os.path.exists(download_path):
+            print(f"Removing invalid archive: {download_path}")
+            rm_rf(download_path)
+        if os.path.exists(toolchain_folder):
+            print(f"Removing incomplete toolchain folder: {toolchain_folder}")
+            rm_rf(toolchain_folder)
+        if extra_entries:
+            for name in extra_entries:
+                entry_path = os.path.join(toolchain_root, name)
+                if os.path.exists(entry_path):
+                    print(f"Removing incomplete extracted entry: {entry_path}")
+                    rm_rf(entry_path)
+
+    def ensure_valid_archive():
+        if os.path.exists(download_path):
+            print("Found downloaded file, verifying...")
+            if verify_file_checksum(download_path, config["sha256"]):
+                print("Skip downloading")
+                return True
             print("File corrupted, re-downloading")
-            rm_rf(download_path)
-            
-            if not download_file(config["url"], download_path):
-                return False
-            
-            if not verify_file_checksum(download_path, config["sha256"]):
-                rm_rf(download_path)
-                return False
-    else:
-        # Download file
+            cleanup_toolchain_cache()
+
         if not download_file(config["url"], download_path):
+            cleanup_toolchain_cache()
             return False
-        
-        # Verify downloaded file
+
         if not verify_file_checksum(download_path, config["sha256"]):
-            rm_rf(download_path)
+            cleanup_toolchain_cache()
             return False
-    
-    # Record existing directories before extraction
-    existing_dirs = set(os.listdir(toolchain_root)) if os.path.exists(toolchain_root) else set()
-    
-    # Extract toolchain
-    print("Extracting toolchain...")
-    if not extract_archive(download_path, toolchain_root):
-        return False
-    
-    # Find the newly extracted directory
-    current_dirs = set(os.listdir(toolchain_root))
-    new_dirs = current_dirs - existing_dirs
-    
-    # If extracted directory name differs from expected folder name, rename it
-    if new_dirs and config["folder"] not in new_dirs:
-        extracted_name = list(new_dirs)[0]
-        actual_folder = os.path.join(toolchain_root, extracted_name)
-        
-        if os.path.isdir(actual_folder):
-            print(f"Renaming '{extracted_name}' -> '{config['folder']}'")
-            if os.path.exists(toolchain_folder):
-                rm_rf(toolchain_folder)
-            shutil.move(actual_folder, toolchain_folder)
-    
-    # Check extraction result
-    if not os.path.exists(toolchain_folder):
+
+        return True
+
+    for idx in range(MAX_DOWNLOAD_ATTEMPTS):
+        if idx > 0:
+            print(f"Retrying toolchain download: {idx + 1}/{MAX_DOWNLOAD_ATTEMPTS}")
+
+        if not ensure_valid_archive():
+            continue
+
+        existing_entries = set(os.listdir(toolchain_root)) if os.path.exists(toolchain_root) else set()
+        rm_rf(toolchain_folder)
+
+        print("Extracting toolchain...")
+        if not extract_archive(download_path, toolchain_root):
+            current_entries = set(os.listdir(toolchain_root)) if os.path.exists(toolchain_root) else set()
+            cleanup_toolchain_cache(current_entries - existing_entries)
+            continue
+
+        current_entries = set(os.listdir(toolchain_root))
+        new_entries = current_entries - existing_entries
+
+        if new_entries and config["folder"] not in new_entries:
+            extracted_name = list(new_entries)[0]
+            actual_folder = os.path.join(toolchain_root, extracted_name)
+
+            if os.path.isdir(actual_folder):
+                print(f"Renaming '{extracted_name}' -> '{config['folder']}'")
+                if os.path.exists(toolchain_folder):
+                    rm_rf(toolchain_folder)
+                shutil.move(actual_folder, toolchain_folder)
+
+        if os.path.exists(toolchain_folder):
+            print("=" * 60)
+            print("✓ Toolchain installed successfully")
+            print("=" * 60)
+            return True
+
         print(f"Extraction failed: directory not found {config['folder']}")
-        return False
-    
-    print("=" * 60)
-    print("✓ Toolchain installed successfully")
-    print("=" * 60)
-    return True
+        cleanup_toolchain_cache(new_entries)
+        continue
+
+    return False
 
 
 def prepare_raspberry_pi():
