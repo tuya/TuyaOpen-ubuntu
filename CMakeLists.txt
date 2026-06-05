@@ -87,6 +87,18 @@ if(CONFIG_ENABLE_BLUETOOTH)
     list(APPEND TUYAOPEN_FOUND_LIBRARIES "glib-2.0" "gio-2.0" "gobject-2.0" "bluetooth" "dbus-1")
 endif()
 
+# ALSA audio support
+if(DEFINED CONFIG_ENABLE_AUDIO_ALSA AND CONFIG_ENABLE_AUDIO_ALSA STREQUAL "y")
+    list(APPEND TUYAOPEN_FOUND_LIBRARIES "asound")
+    message(STATUS "ALSA audio enabled")
+endif()
+
+# Opus codec support
+if(DEFINED CONFIG_ENABLE_TUYA_CODEC_OPUS AND CONFIG_ENABLE_TUYA_CODEC_OPUS STREQUAL "y")
+    list(APPEND TUYAOPEN_FOUND_LIBRARIES "opus")
+    message(STATUS "Opus codec enabled")
+endif()
+
 # SDL2 display support (Raspberry Pi desktop window display)
 if(DEFINED CONFIG_ENABLE_SDL_DISPLAY AND CONFIG_ENABLE_SDL_DISPLAY STREQUAL "y")
     find_package(PkgConfig REQUIRED)
