@@ -14,6 +14,8 @@
 #include "tuya_ringbuf.h"
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "tkl_kws.h"
 
@@ -58,6 +60,23 @@ static ASR_WAKEUP_WORD_MAP_T cASR_WAKEUP_WORD_MAP[] = {
 };
 
 static TKL_KWS_CTX_S g_kws_ctx = {0};
+
+static void __expand_user_path(const char *src, char *dst, size_t dst_size)
+{
+    if (src == NULL || dst == NULL || dst_size == 0) {
+        return;
+    }
+
+    if (src[0] == '~' && src[1] == '/') {
+        const char *home = getenv("HOME");
+        if (home != NULL && home[0] != '\0') {
+            snprintf(dst, dst_size, "%s/%s", home, src + 2);
+            return;
+        }
+    }
+
+    snprintf(dst, dst_size, "%s", src);
+}
 
 /***********************************************************
 ***********************function define**********************
@@ -124,15 +143,27 @@ OPERATE_RET tkl_kws_init(void)
 {
     OPERATE_RET rt = OPRT_OK;
 
-    char *modelpath = KWS_MODEL_PATH;
-    char *tokenpath = KWS_MODEL_TOKEN_PATH;
+    const char *modelpath_cfg = NULL;
+    const char *tokenpath_cfg = NULL;
+    static char modelpath[512] = {0};
+    static char tokenpath[512] = {0};
 
-    if (modelpath == NULL || strlen(modelpath) == 0) {
-        modelpath = "~/tuyaopen_models/mdtc_chunk_300ms.mnn";
+#ifdef KWS_MODEL_PATH
+    modelpath_cfg = KWS_MODEL_PATH;
+#endif
+#ifdef KWS_MODEL_TOKEN_PATH
+    tokenpath_cfg = KWS_MODEL_TOKEN_PATH;
+#endif
+
+    if (modelpath_cfg == NULL || strlen(modelpath_cfg) == 0) {
+        modelpath_cfg = "~/tuyaopen_models/mdtc_chunk_300ms.mnn";
     }
-    if (tokenpath == NULL || strlen(tokenpath) == 0) {
-        tokenpath = "~/tuyaopen_models/tokens.txt";
+    if (tokenpath_cfg == NULL || strlen(tokenpath_cfg) == 0) {
+        tokenpath_cfg = "~/tuyaopen_models/tokens.txt";
     }
+
+    __expand_user_path(modelpath_cfg, modelpath, sizeof(modelpath));
+    __expand_user_path(tokenpath_cfg, tokenpath, sizeof(tokenpath));
 
     // ringbuf create for mic data
     rt = tuya_ring_buff_create(KWS_RING_BUFF_LEN, OVERFLOW_STOP_TYPE, &g_kws_ctx.mic_ringbuf);

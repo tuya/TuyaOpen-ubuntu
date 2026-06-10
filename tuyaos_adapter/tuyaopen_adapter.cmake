@@ -83,15 +83,10 @@ if(CONFIG_ENABLE_CAMERA STREQUAL "y" AND CONFIG_ENABLE_CAMERA_V4L2 STREQUAL "y")
         ${CMAKE_CURRENT_LIST_DIR}/include/jpeg_codec
     )
 
-    # JPEG codec dependency (libjpeg/libjpeg-turbo)
-    find_package(JPEG QUIET)
-    if(JPEG_FOUND)
-        include_directories(${JPEG_INCLUDE_DIR})
-        list(APPEND TUYAOPEN_FOUND_LIBRARIES ${JPEG_LIBRARIES})
-        message(STATUS "Camera(V4L2): Found JPEG library: ${JPEG_LIBRARIES}")
-    else()
-        message(FATAL_ERROR "Camera(V4L2): JPEG library not found; please install libjpeg-dev/libjpeg-turbo8-dev")
-    endif()
+    # JPEG codec dependency - use prebuilt static library
+    set(LIBJPEG_PREBUILT_DIR "${CMAKE_CURRENT_LIST_DIR}/src/tkl_jpeg_codec/libs/${PLATFORM_CHIP}/libjpeg")
+    include_directories("${LIBJPEG_PREBUILT_DIR}/include")
+    list(APPEND TUYAOPEN_FOUND_LIBRARIES "${LIBJPEG_PREBUILT_DIR}/libjpeg.a")
 endif()
 
 # gpio files
@@ -231,34 +226,8 @@ if(CONFIG_ENABLE_AUDIO)
     collect_library("${AUDIO_LIB_PATH}/opus" "opus")
     include_directories("${AUDIO_LIB_PATH}/opus/include")
 
-    ## alsa library (for Raspberry Pi)
-    if (IS_CROSS_COMPILE)
-        collect_library("${AUDIO_LIB_PATH}/alsa" "asound")
-        include_directories("${AUDIO_LIB_PATH}/alsa/include")
-    else()
-        # For native builds, use system ALSA library
-        find_package(PkgConfig QUIET)
-        if(PkgConfig_FOUND)
-            pkg_check_modules(ALSA alsa QUIET)
-        endif()
-        
-        if(NOT ALSA_FOUND)
-            find_library(ALSA_LIBRARY NAMES asound)
-            find_path(ALSA_INCLUDE_DIR alsa/asoundlib.h)
-            if(ALSA_LIBRARY AND ALSA_INCLUDE_DIR)
-                set(ALSA_FOUND TRUE)
-                set(ALSA_INCLUDE_DIRS ${ALSA_INCLUDE_DIR})
-            endif()
-        endif()
-        
-        if(ALSA_FOUND)
-            list(APPEND TUYAOPEN_FOUND_LIBRARIES asound)
-            if(ALSA_INCLUDE_DIRS)
-                include_directories(${ALSA_INCLUDE_DIRS})
-            endif()
-        else()
-            message(FATAL_ERROR "ALSA library not found. Install: sudo apt install libasound2-dev")
-        endif()
-    endif()
+    ## alsa library
+    collect_library("${AUDIO_LIB_PATH}/alsa" "asound")
+    include_directories("${AUDIO_LIB_PATH}/alsa/include")
 endif()
 

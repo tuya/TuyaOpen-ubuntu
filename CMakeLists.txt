@@ -87,24 +87,11 @@ if(CONFIG_ENABLE_BLUETOOTH)
     list(APPEND TUYAOPEN_FOUND_LIBRARIES "glib-2.0" "gio-2.0" "gobject-2.0" "bluetooth" "dbus-1")
 endif()
 
-# ALSA audio support
-if(DEFINED CONFIG_ENABLE_AUDIO_ALSA AND CONFIG_ENABLE_AUDIO_ALSA STREQUAL "y")
-    list(APPEND TUYAOPEN_FOUND_LIBRARIES "asound")
-    message(STATUS "ALSA audio enabled")
-endif()
-
-# Opus codec support
-if(DEFINED CONFIG_ENABLE_TUYA_CODEC_OPUS AND CONFIG_ENABLE_TUYA_CODEC_OPUS STREQUAL "y")
-    list(APPEND TUYAOPEN_FOUND_LIBRARIES "opus")
-    message(STATUS "Opus codec enabled")
-endif()
-
-# SDL2 display support (Raspberry Pi desktop window display)
+# SDL2 display support
 if(DEFINED CONFIG_ENABLE_SDL_DISPLAY AND CONFIG_ENABLE_SDL_DISPLAY STREQUAL "y")
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(SDL2 REQUIRED sdl2)
-    list(APPEND TUYAOPEN_FOUND_LIBRARIES ${SDL2_LDFLAGS} ${SDL2_LDFLAGS_OTHER})
-    message(STATUS "SDL2 display enabled: ${SDL2_LDFLAGS}")
+    set(SDL2_PREBUILT_DIR "${CMAKE_CURRENT_LIST_DIR}/tuyaos_adapter/src/tkl_display/libs/${PLATFORM_CHIP}/SDL2")
+    list(APPEND TUYAOPEN_FOUND_LIBRARIES "${SDL2_PREBUILT_DIR}/libSDL2.a" pthread dl)
+    message(STATUS "SDL2 display enabled: ${SDL2_PREBUILT_DIR}/libSDL2.a")
 endif()
 
 # Try to link with libmvec for vectorized math functions used by MNN
