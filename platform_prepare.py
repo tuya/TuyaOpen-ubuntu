@@ -341,6 +341,11 @@ def prepare_dshanpi_a1():
     toolchain_root = get_toolchain_root()
     return download_and_setup_toolchain(toolchain_root, AARCH64_13_3_TOOLCHAIN_CONFIGS)
 
+def prepare_rk3576():
+    """Prepare RK3576 platform"""
+    toolchain_root = get_toolchain_root()
+    return download_and_setup_toolchain(toolchain_root, AARCH64_14_2_TOOLCHAIN_CONFIGS)
+
 def prepare_ubuntu():
     """Prepare Ubuntu platform"""
     print("Ubuntu platform preparation complete")
@@ -363,6 +368,7 @@ def main():
         "Raspberry_Pi": prepare_raspberry_pi,
         "DshanPi_A1": prepare_dshanpi_a1,
         "Ubuntu": prepare_ubuntu,
+        "RK3576": prepare_rk3576,
     }
 
     if not is_cross_compile():
