@@ -124,7 +124,9 @@ static void *__irq_handler(void *arg)
         FD_SET(uart_dev->fd, &readfd);
         select(uart_dev->fd + 1, &readfd, NULL, NULL, NULL);
         if (FD_ISSET(uart_dev->fd, &readfd)){
-            uart_dev->rx_cb(0);
+            if (uart_dev->rx_cb) {
+                uart_dev->rx_cb(0);
+            }
         }
     }
 }
@@ -141,7 +143,9 @@ static void *__uart_irq_handler(void *arg)
         FD_SET(uart_dev->fd, &readfd);
         select(uart_dev->fd + 1, &readfd, NULL, NULL, NULL);
         if (FD_ISSET(uart_dev->fd, &readfd)) {
-            uart_dev->rx_cb(0);
+            if (uart_dev->rx_cb) {
+                uart_dev->rx_cb(0);
+            }
         }
     }
 }
@@ -160,7 +164,9 @@ static void *__udp_irq_handler(void *arg)
             ssize_t readlen = recvfrom(uart_dev->fd, uart_dev->readbuff, sizeof(uart_dev->readbuff), 0, NULL, 0);
             for (int i = 0; i < readlen; i++) {
                 uart_dev->readchar = uart_dev->readbuff[i];
-                uart_dev->rx_cb(1);
+                if (uart_dev->rx_cb) {
+                    uart_dev->rx_cb(1);
+                }
             }
         }
     }
