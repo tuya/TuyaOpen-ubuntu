@@ -88,6 +88,23 @@ if(CONFIG_ENABLE_CAMERA STREQUAL "y" AND CONFIG_ENABLE_CAMERA_V4L2 STREQUAL "y")
     set(LIBJPEG_PREBUILT_DIR "${CMAKE_CURRENT_LIST_DIR}/src/tkl_jpeg_codec/libs/${PLATFORM_CHIP}/libjpeg")
     include_directories("${LIBJPEG_PREBUILT_DIR}/include")
     list(APPEND TUYAOPEN_FOUND_LIBRARIES "${LIBJPEG_PREBUILT_DIR}/libjpeg.a")
+
+    # Hardware video encoder (H.264 and H.265). Rockchip SoCs expose no V4L2 M2M
+    # encoder, so this goes through /dev/mpp_service via librockchip_mpp. Only
+    # built where the prebuilt MPP drop exists; other chips stay capture-only.
+    set(MPP_PREBUILT_DIR "${CMAKE_CURRENT_LIST_DIR}/src/tkl_venc/libs/${PLATFORM_CHIP}/mpp")
+    if(EXISTS "${MPP_PREBUILT_DIR}/lib/librockchip_mpp.so")
+        message(STATUS "MPP hardware video encoder enabled for ${PLATFORM_CHIP}")
+        list(APPEND SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/tkl_venc/tkl_venc_mpp.c")
+        include_directories(
+            ${CMAKE_CURRENT_LIST_DIR}/include/media
+            "${MPP_PREBUILT_DIR}/include"
+        )
+        list(APPEND TUYAOPEN_FOUND_LIBRARIES "${MPP_PREBUILT_DIR}/lib/librockchip_mpp.so")
+        add_definitions(-DENABLE_TKL_VENC_MPP=1)
+    else()
+        message(STATUS "No MPP prebuilt for ${PLATFORM_CHIP}, hardware encoding unavailable")
+    endif()
 endif()
 
 # gpio files
