@@ -380,6 +380,17 @@ OPERATE_RET tkl_net_setsockopt(const int fd, const TUYA_OPT_LEVEL level, const T
 */
 OPERATE_RET tkl_net_getsockopt(const int fd, const TUYA_OPT_LEVEL level, const TUYA_OPT_NAME optname, void *optval, int *optlen);
 
+/* [tuyaopen-core integration] additional ops used by the standard network card
+ * (implemented in src/tkl_network.c; declared here to complete the interface) */
+OPERATE_RET tkl_net_set_timeout(const int fd, const int ms_timeout, const TUYA_TRANS_TYPE_E type);
+OPERATE_RET tkl_net_set_bufsize(const int fd, const int buf_size, const TUYA_TRANS_TYPE_E type);
+OPERATE_RET tkl_net_set_reuse(const int fd);
+OPERATE_RET tkl_net_disable_nagle(const int fd);
+OPERATE_RET tkl_net_set_broadcast(const int fd);
+OPERATE_RET tkl_net_set_keepalive(int fd, const BOOL_T alive, const uint32_t idle, const uint32_t intr, const uint32_t cnt);
+OPERATE_RET tkl_net_getsockname(int fd, TUYA_IP_ADDR_T *addr, uint16_t *port);
+OPERATE_RET tkl_net_getpeername(int fd, TUYA_IP_ADDR_T *addr, uint16_t *port);
+
 #ifdef __cplusplus
 }
 #endif

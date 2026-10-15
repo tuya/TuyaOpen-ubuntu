@@ -75,6 +75,39 @@ include_directories(
     ${CMAKE_CURRENT_LIST_DIR}/include/tuyaopen
 )
 
+# [tuyaopen-core integration] 本平台的 port（ops 卡实现，../port/）：为 tuyaopen-core
+# 的 tal 层提供 ops 卡（tal_* 经卡分发到这些实现），**随平台一起编入最终 ELF**。
+# 分层约束（C2，与 dev 树 linux/esp32 port 一致）：**port 零 core 依赖**——
+# 卡契约（tal_*_ops.h / tal_bluetooth_def.h）取本平台 port/interface/，
+# 日志/内存/互斥/密码学走平台层或 port 内联；刻意不注入 core 头路径：
+# 一旦有人写回对 core 的 include，编译立即失败（编译期自证的分层门禁）。
+# core 的符号由最终链接组的 libtuyaos.a 提供（PLATFORM_NEED_LIBS）。
+set(TUYAOPEN_PORT_DIR "${CMAKE_CURRENT_LIST_DIR}/../port")
+if(EXISTS "${TUYAOPEN_PORT_DIR}/tkl_system.c")
+    list(APPEND SOURCES
+        "${TUYAOPEN_PORT_DIR}/tkl_system.c"
+        "${TUYAOPEN_PORT_DIR}/tkl_wired.c"
+        "${TUYAOPEN_PORT_DIR}/tkl_kv.c"
+        "${TUYAOPEN_PORT_DIR}/tkl_network.c"
+    )
+    include_directories(
+        "${TUYAOPEN_PORT_DIR}"
+        "${TUYAOPEN_PORT_DIR}/interface"    # 契约层（core 与 port 共用类型）
+        "${TUYAOPEN_PORT_DIR}/littlefs"
+    )
+    # littlefs（tal_kv 的存储引擎）：lfs_util.h 经 LFS_CONFIG 展开 port 下的 lfs_config.h
+    if(EXISTS "${TUYAOPEN_PORT_DIR}/littlefs/lfs.c")
+        list(APPEND SOURCES
+            "${TUYAOPEN_PORT_DIR}/littlefs/lfs.c"
+            "${TUYAOPEN_PORT_DIR}/littlefs/lfs_util.c"
+        )
+        set_source_files_properties(
+            "${TUYAOPEN_PORT_DIR}/littlefs/lfs.c"
+            "${TUYAOPEN_PORT_DIR}/littlefs/lfs_util.c"
+            PROPERTIES COMPILE_DEFINITIONS "LFS_CONFIG=lfs_config.h")
+    endif()
+endif()
+
 # camera files (V4L2)
 if(CONFIG_ENABLE_CAMERA STREQUAL "y" AND CONFIG_ENABLE_CAMERA_V4L2 STREQUAL "y")
     list(APPEND SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/tkl_camera/tkl_camera_v4l2.c")
