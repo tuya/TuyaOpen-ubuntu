@@ -46,9 +46,12 @@ endfunction()
 
 # common files
 file(GLOB_RECURSE UTILITIES_SRC "${CMAKE_CURRENT_LIST_DIR}/include/utilities/*.c")
-file(GLOB ADAPTER_SRC "${CMAKE_CURRENT_LIST_DIR}/src/*.c")
+file(GLOB ADAPTER_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/src/system/*.c"
+    "${CMAKE_CURRENT_LIST_DIR}/src/driver/*.c"
+)
 set(INIT_SRC "${CMAKE_CURRENT_LIST_DIR}/include/init/src/tkl_init_common.c")
-list(REMOVE_ITEM ADAPTER_SRC "${CMAKE_CURRENT_LIST_DIR}/src/tkl_wired.c")
+list(REMOVE_ITEM ADAPTER_SRC "${CMAKE_CURRENT_LIST_DIR}/src/system/tkl_wired.c")
 
 list(APPEND SOURCES 
     ${UTILITIES_SRC} 
@@ -75,84 +78,62 @@ include_directories(
     ${CMAKE_CURRENT_LIST_DIR}/include/tuyaopen
 )
 
-# [tuyaopen-core integration] 本平台的 port（ops 卡实现，../port/）：为 tuyaopen-core
-# 的 tal 层提供 ops 卡（tal_* 经卡分发到这些实现），**随平台一起编入最终 ELF**。
-# 分层约束（C2，与 dev 树 linux/esp32 port 一致）：**port 零 core 依赖**——
-# 卡契约（tal_*_ops.h / tal_bluetooth_def.h）取本平台 port/interface/，
-# 日志/内存/互斥/密码学走平台层或 port 内联；刻意不注入 core 头路径：
-# 一旦有人写回对 core 的 include，编译立即失败（编译期自证的分层门禁）。
-# core 的符号由最终链接组的 libtuyaos.a 提供（PLATFORM_NEED_LIBS）。
-set(TUYAOPEN_PORT_DIR "${CMAKE_CURRENT_LIST_DIR}/../port")
-if(EXISTS "${TUYAOPEN_PORT_DIR}/tkl_system.c")
-    list(APPEND SOURCES
-        "${TUYAOPEN_PORT_DIR}/tkl_system.c"
-        "${TUYAOPEN_PORT_DIR}/tkl_wired.c"
-        "${TUYAOPEN_PORT_DIR}/tkl_kv.c"
-        "${TUYAOPEN_PORT_DIR}/tkl_network.c"
-    )
-    include_directories(
-        "${TUYAOPEN_PORT_DIR}"
-        "${TUYAOPEN_PORT_DIR}/interface"    # 契约层（core 与 port 共用类型）
-        "${TUYAOPEN_PORT_DIR}/littlefs"
-    )
-    # littlefs（tal_kv 的存储引擎）：lfs_util.h 经 LFS_CONFIG 展开 port 下的 lfs_config.h
-    if(EXISTS "${TUYAOPEN_PORT_DIR}/littlefs/lfs.c")
-        list(APPEND SOURCES
-            "${TUYAOPEN_PORT_DIR}/littlefs/lfs.c"
-            "${TUYAOPEN_PORT_DIR}/littlefs/lfs_util.c"
-        )
-        set_source_files_properties(
-            "${TUYAOPEN_PORT_DIR}/littlefs/lfs.c"
-            "${TUYAOPEN_PORT_DIR}/littlefs/lfs_util.c"
-            PROPERTIES COMPILE_DEFINITIONS "LFS_CONFIG=lfs_config.h")
-    endif()
-endif()
+# [tuyaopen-core integration] ops 卡（tal_api_ops_platform / tal_network_ops_platform /
+# tal_netif_ops_platform）的**注册就写在对应实现文件末尾**（src/tkl_system.c /
+# tkl_network.c / tkl_wired.c），随上面的 SOURCES 一起编入最终 ELF——不再有独立
+# port 目录。契约层（core 与平台共用的 ops 类型）在 tuyaopen/interface/，
+# 本组件编译单元由下面这行直接可见。
+# 注：tal_kv 的 ops 卡（LittleFS + AES 加密）在 src/tuya_service/lib_kv 组件。
+include_directories("${CMAKE_CURRENT_LIST_DIR}/tuyaopen/interface")
+# ops 卡注册文件（tal_api_ops_platform / tal_network_ops_platform / tal_netif_ops_platform）：
+# 单独立文件，平台实现文件（src/system/tkl_*.c）保持上游原样零改动
+list(APPEND SOURCES "${CMAKE_CURRENT_LIST_DIR}/tuyaopen/tuyaopen-core_ops.c")
 
 # camera files (V4L2)
 if(CONFIG_ENABLE_CAMERA STREQUAL "y" AND CONFIG_ENABLE_CAMERA_V4L2 STREQUAL "y")
-    list(APPEND SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/tkl_camera/tkl_camera_v4l2.c")
-    list(APPEND SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/tkl_jpeg_codec/tkl_jpeg_codec.c")
+    list(APPEND SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/driver/tkl_camera/tkl_camera_v4l2.c")
+    list(APPEND SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/driver/tkl_jpeg_codec/tkl_jpeg_codec.c")
     include_directories(
         ${CMAKE_CURRENT_LIST_DIR}/include/camera
         ${CMAKE_CURRENT_LIST_DIR}/include/jpeg_codec
     )
 
     # JPEG codec dependency - use prebuilt static library
-    set(LIBJPEG_PREBUILT_DIR "${CMAKE_CURRENT_LIST_DIR}/src/tkl_jpeg_codec/libs/${PLATFORM_CHIP}/libjpeg")
+    set(LIBJPEG_PREBUILT_DIR "${CMAKE_CURRENT_LIST_DIR}/src/driver/tkl_jpeg_codec/libs/${PLATFORM_CHIP}/libjpeg")
     include_directories("${LIBJPEG_PREBUILT_DIR}/include")
     list(APPEND TUYAOPEN_FOUND_LIBRARIES "${LIBJPEG_PREBUILT_DIR}/libjpeg.a")
 endif()
 
 # gpio files
 if(CONFIG_ENABLE_GPIO STREQUAL "y")
-    list(APPEND SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/tkl_gpio.c")
+    list(APPEND SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/driver/tkl_gpio.c")
 endif()
 
 # i2c files
 if(CONFIG_ENABLE_I2C STREQUAL "y")
-    list(APPEND SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/tkl_i2c.c")
+    list(APPEND SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/driver/tkl_i2c.c")
 endif()
 
 # spi files
 if(CONFIG_ENABLE_SPI STREQUAL "y")
-    list(APPEND SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/tkl_spi.c")
+    list(APPEND SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/driver/tkl_spi.c")
 endif()
 
 # pwm files
 if(CONFIG_ENABLE_PWM STREQUAL "y")
-    list(APPEND SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/tkl_pwm.c")
+    list(APPEND SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/driver/tkl_pwm.c")
 endif()
 
 # uart files
 if(CONFIG_ENABLE_UART STREQUAL "y")
-    list(APPEND SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/tkl_uart.c")
+    list(APPEND SOURCES "${CMAKE_CURRENT_LIST_DIR}/src/driver/tkl_uart.c")
 endif()
 
 # wire files
 if(CONFIG_ENABLE_WIRED)
     list(APPEND SOURCES 
             "${CMAKE_CURRENT_LIST_DIR}/include/init/src/tkl_init_wired.c"
-            "${CMAKE_CURRENT_LIST_DIR}/src/tkl_wired.c"
+            "${CMAKE_CURRENT_LIST_DIR}/src/system/tkl_wired.c"
     )
     include_directories(
         ${CMAKE_CURRENT_LIST_DIR}/include/wired
@@ -161,13 +142,13 @@ endif()
 
 # wifi files
 if(CONFIG_ENABLE_WIFI)
-    file(GLOB_RECURSE WIFI_SRC "${CMAKE_CURRENT_LIST_DIR}/src/tkl_wifi/*.c")
+    file(GLOB_RECURSE WIFI_SRC "${CMAKE_CURRENT_LIST_DIR}/src/driver/tkl_wifi/*.c")
     list(APPEND INIT_SRC "${CMAKE_CURRENT_LIST_DIR}/include/init/src/tkl_init_wifi.c")
     list(APPEND WPA_INC
-        "${CMAKE_CURRENT_LIST_DIR}/src/tkl_wifi/iwlib"
-        "${CMAKE_CURRENT_LIST_DIR}/src/tkl_wifi/wpa_s"
-        "${CMAKE_CURRENT_LIST_DIR}/src/tkl_wifi/wpa_cli"
-        "${CMAKE_CURRENT_LIST_DIR}/src/tkl_wifi/log"
+        "${CMAKE_CURRENT_LIST_DIR}/src/driver/tkl_wifi/iwlib"
+        "${CMAKE_CURRENT_LIST_DIR}/src/driver/tkl_wifi/wpa_s"
+        "${CMAKE_CURRENT_LIST_DIR}/src/driver/tkl_wifi/wpa_cli"
+        "${CMAKE_CURRENT_LIST_DIR}/src/driver/tkl_wifi/log"
     )
 
     list(APPEND SOURCES ${WIFI_SRC})
@@ -179,16 +160,16 @@ endif()
 
 # bluetooth files
 if(CONFIG_ENABLE_BLUETOOTH)
-    file(GLOB_RECURSE BT_SRC "${CMAKE_SOURCE_DIR}/tuyaos_adapter/src/tkl_bt/bluez_inc/binc/*.c")
+    file(GLOB_RECURSE BT_SRC "${CMAKE_SOURCE_DIR}/tuyaos_adapter/src/driver/tkl_bt/bluez_inc/binc/*.c")
     list(APPEND BT_SRC 
-        "${CMAKE_SOURCE_DIR}/tuyaos_adapter/src/tkl_bt/tkl_bluetooth.c"
-        "${CMAKE_SOURCE_DIR}/tuyaos_adapter/src/tkl_bt/bt_dbus_api.c"
-        "${CMAKE_SOURCE_DIR}/tuyaos_adapter/src/tkl_bt/bt_hci_adv_api.c"
+        "${CMAKE_SOURCE_DIR}/tuyaos_adapter/src/driver/tkl_bt/tkl_bluetooth.c"
+        "${CMAKE_SOURCE_DIR}/tuyaos_adapter/src/driver/tkl_bt/bt_dbus_api.c"
+        "${CMAKE_SOURCE_DIR}/tuyaos_adapter/src/driver/tkl_bt/bt_hci_adv_api.c"
     )
 
     set(BT_INC)
     list(APPEND BT_INC
-        "${CMAKE_SOURCE_DIR}/tuyaos_adapter/src/tkl_bt/bluez_inc/binc"
+        "${CMAKE_SOURCE_DIR}/tuyaos_adapter/src/driver/tkl_bt/bluez_inc/binc"
         "${CMAKE_SOURCE_DIR}/tuyaos_adapter/include/bluetooth"
     )
 
@@ -239,14 +220,14 @@ list(APPEND SOURCES "${CMAKE_CURRENT_LIST_DIR}/tuyaopen/tuyaopen_license.c")
 
 # audio files
 if(CONFIG_ENABLE_AUDIO)
-    file(GLOB_RECURSE AUDIO_SRC "${CMAKE_CURRENT_LIST_DIR}/src/tkl_audio/*.c")
+    file(GLOB_RECURSE AUDIO_SRC "${CMAKE_CURRENT_LIST_DIR}/src/driver/tkl_audio/*.c")
     list(APPEND SOURCES ${AUDIO_SRC})
     include_directories(
         ${CMAKE_CURRENT_LIST_DIR}/include/media
     )
 
     # audio library
-    set(AUDIO_LIB_PATH "${CMAKE_CURRENT_LIST_DIR}/src/tkl_audio/libs/${PLATFORM_CHIP}")
+    set(AUDIO_LIB_PATH "${CMAKE_CURRENT_LIST_DIR}/src/driver/tkl_audio/libs/${PLATFORM_CHIP}")
     if (NOT EXISTS "${AUDIO_LIB_PATH}")
         message(FATAL_ERROR "Audio library path does not exist: ${AUDIO_LIB_PATH}")
     endif()
