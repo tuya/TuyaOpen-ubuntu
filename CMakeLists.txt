@@ -87,6 +87,9 @@ if(CONFIG_ENABLE_BLUETOOTH)
     list(APPEND TUYAOPEN_FOUND_LIBRARIES "glib-2.0" "gio-2.0" "gobject-2.0" "bluetooth" "dbus-1")
 endif()
 
+# 注：原 port/tkl_kv.c 的 KV 密码学（OpenSSL 内联 AES/SHA256）已随 ops 卡收编到
+# src/tuya_service/tal_kv 组件（走 core 的 tal_security / mbedtls），平台不再依赖 libcrypto。
+
 # SDL2 display support
 if(DEFINED CONFIG_ENABLE_SDL_DISPLAY AND CONFIG_ENABLE_SDL_DISPLAY STREQUAL "y")
     set(SDL2_PREBUILT_DIR "${CMAKE_CURRENT_LIST_DIR}/tuyaos_adapter/src/tkl_display/libs/${PLATFORM_CHIP}/SDL2")
