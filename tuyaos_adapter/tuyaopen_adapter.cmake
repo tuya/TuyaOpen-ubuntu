@@ -23,6 +23,13 @@ set(TUYAOPEN_CORE_PORT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../tuyaopen-core/por
 # This platform provides the tkl_ble_* API implemented in src/driver/tkl_bt.
 add_definitions(-DTUYAOPEN_HAS_TKL_BLE=1)
 
+# tuyaopen-core_ops.c selects the Bluetooth ops members with ENABLE_BLUETOOTH;
+# without it the shared card is compiled as an all-NULL stub and BLE netcfg
+# fails with "operation gap_callback_register not available".
+if(CONFIG_ENABLE_BLUETOOTH)
+    add_definitions(-DENABLE_BLUETOOTH=1)
+endif()
+
 set(SOURCES "")
 
 # Initialize global variable to collect found libraries
