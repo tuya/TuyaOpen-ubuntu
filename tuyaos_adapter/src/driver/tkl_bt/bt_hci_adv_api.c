@@ -2,7 +2,11 @@
 #include <bluetooth/hci.h>
 #include <bluetooth/hci_lib.h>
 
-#include "tal_log.h"
+#include "tuya_cloud_types.h"   /* 平台层公共类型（uint8_t/bool 等） */
+#include "tuya_error_code.h"    /* 平台层错误码（OPRT_*） */
+
+/* 原 include "tal_log.h"（core）已移除：本文件日志全走 printf，
+ * 分层约束 port 不向上 include core；OPRT_ 错误码与 uint8_t 改取平台层头。 */
 
 int tuya_hci_le_set_adv_params(uint16_t min_interval, uint16_t max_interval, uint8_t  advtype)
 {
