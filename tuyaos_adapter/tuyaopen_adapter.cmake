@@ -20,16 +20,6 @@ endif()
 # The relative path assumes this platform is checked out at <delivery>/platform/LINUX.
 set(TUYAOPEN_CORE_PORT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../tuyaopen-core/port/tuyaopen")
 
-# This platform provides the tkl_ble_* API implemented in src/driver/tkl_bt.
-add_definitions(-DTUYAOPEN_HAS_TKL_BLE=1)
-
-# tuyaopen-core_ops.c selects the Bluetooth ops members with ENABLE_BLUETOOTH;
-# without it the shared card is compiled as an all-NULL stub and BLE netcfg
-# fails with "operation gap_callback_register not available".
-if(CONFIG_ENABLE_BLUETOOTH)
-    add_definitions(-DENABLE_BLUETOOTH=1)
-endif()
-
 set(SOURCES "")
 
 # Initialize global variable to collect found libraries
@@ -92,13 +82,8 @@ include_directories(
     ${CMAKE_CURRENT_LIST_DIR}/include/tuyaopen
 )
 
-# Ops card registration compiled from
-# tuyaopen-core/port/tuyaopen/tuyaopen-core_ops.c (shared by all platforms).
-# Contract headers are in the interface/ directory of the same path.
-# The core_kv card (LittleFS + AES) is provided by src/tuya_service/lib_kv.
+# Core ops cards are built by src/tuya_service/core_port.
 include_directories("${TUYAOPEN_CORE_PORT_DIR}/interface")
-# Ops card registration file; platform implementation files stay unchanged.
-list(APPEND SOURCES "${TUYAOPEN_CORE_PORT_DIR}/tuyaopen-core_ops.c")
 
 # camera files (V4L2)
 if(CONFIG_ENABLE_CAMERA STREQUAL "y" AND CONFIG_ENABLE_CAMERA_V4L2 STREQUAL "y")
