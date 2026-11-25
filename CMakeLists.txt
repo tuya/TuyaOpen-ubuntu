@@ -92,7 +92,10 @@ endif()
 
 # SDL2 display support
 if(DEFINED CONFIG_ENABLE_SDL_DISPLAY AND CONFIG_ENABLE_SDL_DISPLAY STREQUAL "y")
-    set(SDL2_PREBUILT_DIR "${CMAKE_CURRENT_LIST_DIR}/tuyaos_adapter/src/tkl_display/libs/${PLATFORM_CHIP}/SDL2")
+    set(SDL2_PREBUILT_DIR "${CMAKE_CURRENT_LIST_DIR}/tuyaos_adapter/src/driver/tkl_display/libs/${PLATFORM_CHIP}/SDL2")
+    if(NOT EXISTS "${SDL2_PREBUILT_DIR}/libSDL2.a")
+        message(FATAL_ERROR "Prebuilt SDL2 static library not found: ${SDL2_PREBUILT_DIR}/libSDL2.a")
+    endif()
     list(APPEND TUYAOPEN_FOUND_LIBRARIES "${SDL2_PREBUILT_DIR}/libSDL2.a" pthread dl)
     message(STATUS "SDL2 display enabled: ${SDL2_PREBUILT_DIR}/libSDL2.a")
 endif()
